@@ -1,0 +1,24 @@
+# Zero-trust between services: only the API (and the ingest job) may call the MCP
+# servers and Qdrant. A compromised pod elsewhere in the cluster cannot reach order data.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-only-from-api
+spec:
+  podSelector: { matchLabels: { role: mcp } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { role: api } }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: qdrant-only-from-app
+spec:
+  podSelector: { matchLabels: { app: qdrant } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { role: api } }
+        - podSelector: { matchLabels: { job-name: caseflow-ingest } }

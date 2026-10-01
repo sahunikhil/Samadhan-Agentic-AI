@@ -1,0 +1,31 @@
+# Caddy obtains and renews TLS certificates automatically for {$DOMAIN}.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Chat messages are tiny; refuse large bodies at the edge (the API enforces the same limit).
+	request_body {
+		max_size 1MB
+	}
+
+	# Server-Sent Events: never buffer the token stream.
+	@sse path /v1/chat/stream /v1/threads/*/resume
+	reverse_proxy @sse api:8000 {
+		flush_interval -1
+		transport http {
+			read_timeout 10m
+		}
+	}
+
+	# Metrics stay private (scrape them from inside the network).
+	@metrics path /metrics
+	respond @metrics 404
+
+	reverse_proxy api:8000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}

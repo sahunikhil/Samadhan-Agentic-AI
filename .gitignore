@@ -1,0 +1,52 @@
+# --- Python / tooling (uv, pytest, mypy, ruff, coverage) ----------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+# Keep: uv.lock (reproducible installs) and .python-version (pinned interpreter).
+
+# --- Local runtime state (recreated by `caseflow seed` / `caseflow ingest`) ---
+.data/
+.models/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# --- Secrets ------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Evaluation output ----------------------------------------------------------
+# Run outputs stay local.
+evals/reports/*
+!evals/reports/.gitkeep
+# Harvested thumbs-down turns contain real customer messages (PII): label them
+# locally, then promote anonymized cases into the golden datasets.
+evals/datasets/candidates/
+
+# --- Dev tools -----------------------------------------------------------------------
+# LangGraph dev server (Studio) local state
+.langgraph_api/
+
+# --- OS / editors ------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*~

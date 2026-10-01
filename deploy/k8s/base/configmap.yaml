@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caseflow-config
+data:
+  CASEFLOW_ENVIRONMENT: prod
+  CASEFLOW_API__DEMO_MODE: "false"
+  CASEFLOW_OBSERVABILITY__LOG_JSON: "true"
+  CASEFLOW_LLM__PROFILE: gemini
+  CASEFLOW_RETRIEVAL__QDRANT_URL: http://qdrant:6333
+  CASEFLOW_MCP__COMMERCE_URL: http://commerce:8101/mcp
+  CASEFLOW_MCP__HELPDESK_URL: http://helpdesk:8102/mcp
+
+# Template only - create the real secret with External Secrets / Sealed Secrets / your cloud's
+# secret manager CSI driver. Never commit real values.
+#   kubectl -n caseflow create secret generic caseflow-secrets \
+#     --from-literal=GOOGLE_API_KEY=... --from-literal=GROQ_API_KEY=... \
+#     --from-literal=CASEFLOW_PERSISTENCE__DATABASE_URL=postgresql://... \
+#     --from-literal=CASEFLOW_MCP__COMMERCE_DB_URL=postgresql+psycopg://.../commerce \
+#     --from-literal=CASEFLOW_MCP__HELPDESK_DB_URL=postgresql+psycopg://.../helpdesk \
+#     --from-literal=CASEFLOW_MCP__JWT_SECRET=$(openssl rand -hex 32) \
+#     --from-literal=CASEFLOW_API__TOKEN_SECRET=$(openssl rand -hex 32) \
+#     --from-literal=CASEFLOW_API__ADMIN_API_KEY=$(openssl rand -hex 24)

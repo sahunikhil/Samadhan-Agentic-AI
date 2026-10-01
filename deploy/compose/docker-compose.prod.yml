@@ -1,0 +1,38 @@
+# Production overlay for a single VM (any cloud / VPS):
+#   docker compose -f docker-compose.yml -f deploy/compose/docker-compose.prod.yml up -d
+# Adds automatic HTTPS (Caddy + Let's Encrypt), production-safe settings, memory limits,
+# and stops publishing internal ports. Sized for a 4 GB / 2 vCPU machine.
+services:
+  caddy:
+    image: caddy:2.11
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. support.example.com}
+    volumes:
+      - ./deploy/compose/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on: [api]
+    restart: unless-stopped
+
+  api:
+    ports: !reset []  # only reachable through Caddy
+    environment:
+      CASEFLOW_ENVIRONMENT: prod
+      CASEFLOW_API__DEMO_MODE: "false"
+      CASEFLOW_API__CORS_ORIGINS: '["https://${DOMAIN}"]'
+    deploy:
+      resources:
+        limits: { memory: 1536M }
+
+  commerce:
+    deploy: { resources: { limits: { memory: 384M } } }
+  helpdesk:
+    deploy: { resources: { limits: { memory: 384M } } }
+  qdrant:
+    ports: !reset []
+    deploy: { resources: { limits: { memory: 768M } } }
+  postgres:
+    deploy: { resources: { limits: { memory: 768M } } }
+
+volumes:
+  caddy_data:

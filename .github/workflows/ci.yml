@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CASEFLOW_ENVIRONMENT: test
+  CASEFLOW_RETRIEVAL__MODEL_CACHE_DIR: ${{ github.workspace }}/.models
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  quality:
+    name: Lint & type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - run: uv sync --locked
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      - run: uv run mypy
+
+  test:
+    name: Tests (unit + integration, no API keys)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - name: Cache ONNX models
+        uses: actions/cache@v4
+        with:
+          path: .models
+          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+      - run: uv sync --locked
+      - run: uv run pytest -q --cov=caseflow --cov-report=term-missing:skip-covered
+
+  pgvector:
+    name: pgvector backend (Postgres service)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg18
+        env: { POSTGRES_USER: caseflow, POSTGRES_PASSWORD: caseflow, POSTGRES_DB: caseflow }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U caseflow" --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      CASEFLOW_TEST_DATABASE_URL: postgresql://caseflow:caseflow@localhost:5432/caseflow
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - uses: actions/cache@v4
+        with:
+          path: .models
+          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+      - run: uv sync --locked
+      - run: uv run pytest -q -m postgres
+
+  retrieval-eval:
+    name: Retrieval quality gate (no LLM)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - uses: actions/cache@v4
+        with:
+          path: .models
+          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+      - run: uv sync --locked --extra eval
+      - run: uv run caseflow eval all --only retrieval
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: retrieval-report, path: evals/reports/ }
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: caseflow:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

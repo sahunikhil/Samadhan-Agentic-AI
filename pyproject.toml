@@ -1,0 +1,132 @@
+[project]
+name = "caseflow"
+version = "0.1.0"
+description = "CaseFlow - a production-grade, multi-agent customer-support resolution platform built on LangGraph, MCP, hybrid RAG (Qdrant / pgvector) and evaluated with RAGAS."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12,<3.14"
+authors = [{ name = "Nikhil Sahu" }]
+keywords = ["langgraph", "langchain", "mcp", "rag", "ragas", "qdrant", "multi-agent", "agentic-ai"]
+dependencies = [
+    # --- Agent orchestration -------------------------------------------------
+    "langgraph>=1.2.12",
+    "langchain[mcp]>=1.4.3",          # create_agent, middleware, langchain.mcp (FastMCP-based)
+    "langchain-core>=1.6.6",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph-checkpoint-postgres>=3.1.2",
+    "langgraph-checkpoint-sqlite>=3.1.1",
+    # --- Free / open LLM providers ------------------------------------------
+    "langchain-google-genai>=4.4.0",  # Gemini free tier
+    "langchain-groq>=1.1.3",          # Groq free tier
+    "langchain-ollama>=1.1.0",        # fully local models
+    "langchain-openai>=1.6.6",        # any OpenAI-compatible server (vLLM, LM Studio, OpenRouter)
+    # --- MCP servers ---------------------------------------------------------
+    "fastmcp>=4.0.10",
+    "pyjwt>=2.10",
+    # --- Retrieval -----------------------------------------------------------
+    "qdrant-client[fastembed]>=1.19.1",
+    "fastembed>=0.8.1",
+    "pgvector>=0.5.0",
+    "psycopg[binary,pool]>=3.3.6",
+    # --- Data / API ----------------------------------------------------------
+    "sqlalchemy[asyncio]>=2.1.1",
+    "aiosqlite>=0.21",
+    "fastapi>=0.142.1",
+    "uvicorn[standard]>=0.54.0",
+    "sse-starlette>=3.5.0",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "httpx>=0.28.1",
+    # --- Ops -----------------------------------------------------------------
+    "structlog>=26.1.0",
+    "prometheus-client>=0.26.0",
+    "typer>=0.19",
+    "rich>=14.0",
+    "a2a-sdk[http-server]>=1.2.0",
+    "opentelemetry-sdk>=1.45.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.0",
+    "opentelemetry-instrumentation-fastapi>=0.66b0",
+    "opentelemetry-instrumentation-httpx>=0.66b0",
+]
+
+[project.optional-dependencies]
+eval = [
+    "ragas>=0.4.3",
+    # ragas 0.4.3 imports `langchain_community.chat_models.vertexai`, which was
+    # removed in langchain-community 0.4.2. Pin until ragas ships a fix.
+    "langchain-community>=0.4.1,<0.4.2",
+]
+observability = [
+    "langfuse>=4.15.6",
+]
+
+[project.scripts]
+caseflow = "caseflow.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.0",
+    "ruff>=0.16.9",
+    "mypy>=2.3.1",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/caseflow"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "ASYNC", "RUF", "S", "PT", "C4", "PIE", "RET", "TID"]
+ignore = [
+    "E501",    # long lines are handled by the formatter; prompts/tables are intentionally long
+    "S101",    # assert is fine in tests
+    "RET504",  # explicit variable before return often reads better in agent code
+    "RUF001", "RUF002", "RUF003",  # typographic characters in prompts/docs
+    "B008",    # FastAPI Depends() in defaults is idiomatic
+    "ASYNC109", # explicit timeout params are intentional
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PT011", "PT018", "B017", "RUF012"]
+"src/caseflow/cli.py" = ["S104"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["caseflow"]
+mypy_path = "src"
+warn_unused_ignores = false
+warn_return_any = false
+disallow_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+check_untyped_defs = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+    "llm: needs a real LLM API key (skipped in CI unless keys are configured)",
+    "postgres: needs CASEFLOW_TEST_DATABASE_URL (pgvector-enabled Postgres)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:.*langchain.mcp.*:Warning",
+]

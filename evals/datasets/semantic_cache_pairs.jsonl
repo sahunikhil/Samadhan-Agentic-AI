@@ -1,0 +1,48 @@
+{"id": "P01", "cached": "Can I return opened earbuds?", "query": "Are opened earbuds returnable?", "same": true, "kind": "paraphrase"}
+{"id": "P02", "cached": "How long is the return window?", "query": "How many days do I have to return an item?", "same": true, "kind": "paraphrase"}
+{"id": "P03", "cached": "Can I take the PowerCell 20K on a plane?", "query": "Is the PowerCell 20K allowed in carry-on luggage on a flight?", "same": true, "kind": "paraphrase"}
+{"id": "P04", "cached": "Do you price match competitors?", "query": "Will you match a lower price from another retailer?", "same": true, "kind": "paraphrase"}
+{"id": "P05", "cached": "What does the VoltCare+ plan cover?", "query": "What is covered under VoltCare+ protection?", "same": true, "kind": "paraphrase"}
+{"id": "P06", "cached": "How long does standard shipping take?", "query": "What's the delivery time for standard shipping?", "same": true, "kind": "paraphrase"}
+{"id": "P07", "cached": "Do you ship internationally?", "query": "Can I get my order shipped to another country?", "same": true, "kind": "paraphrase"}
+{"id": "P08", "cached": "How do I pair my Pulse Buds Pro?", "query": "What are the steps to connect Pulse Buds Pro over Bluetooth?", "same": true, "kind": "paraphrase"}
+{"id": "P09", "cached": "Is financing available?", "query": "Can I pay for my purchase in monthly installments?", "same": true, "kind": "paraphrase"}
+{"id": "P10", "cached": "Do gift cards expire?", "query": "Is there an expiration date on Voltwise gift cards?", "same": true, "kind": "paraphrase"}
+{"id": "P11", "cached": "How long is the warranty on VoltBook laptops?", "query": "What warranty period do VoltBook laptops have?", "same": true, "kind": "paraphrase"}
+{"id": "P12", "cached": "How do I earn VoltPoints?", "query": "What are the ways to collect VoltPoints rewards?", "same": true, "kind": "paraphrase"}
+{"id": "P13", "cached": "My VoltBook won't turn on, what should I do?", "query": "VoltBook doesn't power on - how do I fix it?", "same": true, "kind": "paraphrase"}
+{"id": "P14", "cached": "What are your customer support hours?", "query": "When is Voltwise support available?", "same": true, "kind": "paraphrase"}
+{"id": "P15", "cached": "Can I cancel an order after it ships?", "query": "Is it possible to cancel once my order has shipped?", "same": true, "kind": "paraphrase"}
+{"id": "P16", "cached": "Does the Nova 8 support wireless charging?", "query": "Can the Nova 8 charge wirelessly?", "same": true, "kind": "paraphrase"}
+{"id": "P17", "cached": "What is the battery life of the Pulse ANC headphones?", "query": "How many hours do Pulse ANC headphones last on a charge?", "same": true, "kind": "paraphrase"}
+{"id": "P18", "cached": "Is there a restocking fee for laptops?", "query": "Do you charge a restocking fee when a laptop is returned?", "same": true, "kind": "paraphrase"}
+{"id": "P19", "cached": "How do I reset my password?", "query": "I forgot my password, how can I reset it?", "same": true, "kind": "paraphrase"}
+{"id": "P20", "cached": "What charger do I need for the VoltBook Pro 16?", "query": "Which power adapter works with the VoltBook Pro 16?", "same": true, "kind": "paraphrase"}
+{"id": "P21", "cached": "How long does a refund take?", "query": "When will I get my money back after a return?", "same": true, "kind": "paraphrase"}
+{"id": "P22", "cached": "Is Express shipping free for VoltPlus members?", "query": "Do VoltPlus members get free express delivery?", "same": true, "kind": "paraphrase"}
+{"id": "N01", "cached": "Can I return opened earbuds?", "query": "Can I return opened over-ear headphones?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N02", "cached": "How long is the return window?", "query": "How long is the return window for VoltPlus members?", "same": false, "kind": "near_miss", "slot": "condition"}
+{"id": "N03", "cached": "Can I take the PowerCell 20K on a plane?", "query": "Can I put the PowerCell 20K in my checked luggage?", "same": false, "kind": "near_miss", "slot": "condition"}
+{"id": "N04", "cached": "How long does standard shipping take?", "query": "How long does express shipping take?", "same": false, "kind": "near_miss", "slot": "option"}
+{"id": "N05", "cached": "What charger do I need for the VoltBook Pro 16?", "query": "What charger do I need for the VoltBook Air 14?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N06", "cached": "Can I cancel an order after it ships?", "query": "Can I cancel an order before it ships?", "same": false, "kind": "near_miss", "slot": "negation"}
+{"id": "N07", "cached": "Is there a restocking fee for laptops?", "query": "Is there a restocking fee for headphones?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N08", "cached": "What is the battery life of the Pulse ANC headphones?", "query": "What is the battery life of the Pulse Buds Pro?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N09", "cached": "How do I pair my Pulse Buds Pro?", "query": "How do I pair my Aura Smart Speaker?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N10", "cached": "Do you ship internationally?", "query": "Do you ship to P.O. boxes?", "same": false, "kind": "near_miss", "slot": "option"}
+{"id": "N11", "cached": "Do you price match competitors?", "query": "Do you adjust the price if you lower it after I buy?", "same": false, "kind": "near_miss", "slot": "policy"}
+{"id": "N12", "cached": "What does the VoltCare+ plan cover?", "query": "How much does the VoltCare+ plan cost?", "same": false, "kind": "near_miss", "slot": "aspect"}
+{"id": "N13", "cached": "How do I earn VoltPoints?", "query": "How do I redeem VoltPoints?", "same": false, "kind": "near_miss", "slot": "action"}
+{"id": "N14", "cached": "How long is the return window?", "query": "How long does a refund take?", "same": false, "kind": "near_miss", "slot": "aspect"}
+{"id": "N15", "cached": "Do gift cards expire?", "query": "Does store credit expire?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N16", "cached": "Does the Nova 8 support wireless charging?", "query": "Does the Nova 8 support fast charging?", "same": false, "kind": "near_miss", "slot": "aspect"}
+{"id": "N17", "cached": "How long is the warranty on VoltBook laptops?", "query": "How long is the warranty on refurbished items?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N18", "cached": "Is financing available?", "query": "Do you accept PayPal?", "same": false, "kind": "near_miss", "slot": "aspect"}
+{"id": "N19", "cached": "How do I reset my password?", "query": "How do I delete my account?", "same": false, "kind": "near_miss", "slot": "action"}
+{"id": "N20", "cached": "Is Express shipping free for VoltPlus members?", "query": "Is Express shipping free for orders over $50?", "same": false, "kind": "near_miss", "slot": "condition"}
+{"id": "N21", "cached": "Can I take the PowerCell 20K on a plane?", "query": "Can I take the VoltBook Pro 16 on a plane?", "same": false, "kind": "near_miss", "slot": "product"}
+{"id": "N22", "cached": "What is the battery life of the Pulse ANC headphones?", "query": "How do I turn on noise cancelling on the Pulse ANC headphones?", "same": false, "kind": "near_miss", "slot": "aspect"}
+{"id": "U01", "cached": "Do gift cards expire?", "query": "How do I pair my Pulse Buds Pro?", "same": false, "kind": "unrelated"}
+{"id": "U02", "cached": "How long does standard shipping take?", "query": "What does the VoltCare+ plan cover?", "same": false, "kind": "unrelated"}
+{"id": "U03", "cached": "Is financing available?", "query": "My VoltBook won't turn on, what should I do?", "same": false, "kind": "unrelated"}
+{"id": "U04", "cached": "How do I reset my password?", "query": "Does the Nova 8 support wireless charging?", "same": false, "kind": "unrelated"}

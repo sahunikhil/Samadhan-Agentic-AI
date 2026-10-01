@@ -1,0 +1,38 @@
+# Self-hosted single-node Qdrant. Alternatives: Qdrant Cloud (free 1 GB cluster) or
+# CASEFLOW_RETRIEVAL__BACKEND=pgvector to drop this component entirely.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant
+spec:
+  serviceName: qdrant
+  replicas: 1
+  selector: { matchLabels: { app: qdrant } }
+  template:
+    metadata:
+      labels: { app: qdrant }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:v1.19.1
+          ports: [{ containerPort: 6333, name: http }]
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
+          readinessProbe: { httpGet: { path: /readyz, port: http } }
+          volumeMounts: [{ name: storage, mountPath: /qdrant/storage }]
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: ["ALL"] } }
+  volumeClaimTemplates:
+    - metadata: { name: storage }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources: { requests: { storage: 5Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+spec:
+  selector: { app: qdrant }
+  ports: [{ port: 6333, targetPort: http }]

@@ -1,0 +1,21 @@
+# Run on every release: seeds the demo data (skip in real deployments) and incrementally
+# re-indexes the knowledge base - unchanged articles are not re-embedded.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: caseflow-ingest
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: ingest
+          image: caseflow
+          args: ["sh", "-c", "caseflow seed && caseflow ingest"]
+          envFrom:
+            - configMapRef: { name: caseflow-config }
+            - secretRef: { name: caseflow-secrets }
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: ["ALL"] } }

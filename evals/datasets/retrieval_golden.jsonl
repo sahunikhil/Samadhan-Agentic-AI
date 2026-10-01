@@ -1,0 +1,45 @@
+{"id": "R01", "question": "How long does standard shipping take?", "relevant": ["KB-001"]}
+{"id": "R02", "question": "Is shipping free on my order?", "relevant": ["KB-001"]}
+{"id": "R03", "question": "Do you ship to Japan?", "relevant": ["KB-002"]}
+{"id": "R04", "question": "Will I have to pay customs duties when my order arrives in Canada?", "relevant": ["KB-002"]}
+{"id": "R05", "question": "How many days do VoltPlus members have to return something?", "relevant": ["KB-003", "KB-010"]}
+{"id": "R06", "question": "Can I send back earbuds I already opened?", "relevant": ["KB-003", "KB-017"]}
+{"id": "R07", "question": "Is there a restocking fee if I return an opened laptop?", "relevant": ["KB-003", "KB-014"]}
+{"id": "R08", "question": "How long until my refund shows up on my credit card?", "relevant": ["KB-003"]}
+{"id": "R09", "question": "What bonus do I get if I take store credit instead of a refund?", "relevant": ["KB-003", "KB-011"]}
+{"id": "R10", "question": "My package arrived with a broken item inside, what should I do?", "relevant": ["KB-004"]}
+{"id": "R11", "question": "Tracking says delivered but there is nothing at my door", "relevant": ["KB-004"]}
+{"id": "R12", "question": "How long is the warranty on the VoltBook Air 14?", "relevant": ["KB-005", "KB-014"]}
+{"id": "R13", "question": "Is a cracked screen covered by warranty?", "relevant": ["KB-005", "KB-006"]}
+{"id": "R14", "question": "What is the VoltCare+ deductible for a phone?", "relevant": ["KB-006"]}
+{"id": "R15", "question": "Can I add a protection plan a month after buying my laptop?", "relevant": ["KB-006"]}
+{"id": "R16", "question": "Will you match a lower price from another big electronics store?", "relevant": ["KB-007"]}
+{"id": "R17", "question": "The price went down a week after I bought it, can I get the difference?", "relevant": ["KB-007"]}
+{"id": "R18", "question": "Can I pay with PayPal or Apple Pay?", "relevant": ["KB-008"]}
+{"id": "R19", "question": "Do you offer 0% financing?", "relevant": ["KB-008"]}
+{"id": "R20", "question": "When exactly is my card charged for an order?", "relevant": ["KB-008"]}
+{"id": "R21", "question": "How do I cancel an order I just placed?", "relevant": ["KB-009"]}
+{"id": "R22", "question": "Can I change the delivery address after ordering?", "relevant": ["KB-009"]}
+{"id": "R23", "question": "What does the order status in_transit mean?", "relevant": ["KB-009"]}
+{"id": "R24", "question": "How much does a VoltPlus membership cost per year?", "relevant": ["KB-010"]}
+{"id": "R25", "question": "How many VoltPoints do I need for a $5 reward?", "relevant": ["KB-010"]}
+{"id": "R26", "question": "Do Voltwise gift cards expire?", "relevant": ["KB-011"]}
+{"id": "R27", "question": "Can I get my money back for a gift card?", "relevant": ["KB-011", "KB-003"]}
+{"id": "R28", "question": "How do I request deletion of my personal data?", "relevant": ["KB-012"]}
+{"id": "R29", "question": "How long do you keep chat transcripts?", "relevant": ["KB-012"]}
+{"id": "R30", "question": "What hours can I reach a human support agent?", "relevant": ["KB-013"]}
+{"id": "R31", "question": "What is the mailing address for returns?", "relevant": ["KB-013"]}
+{"id": "R32", "question": "How many external monitors can the VoltBook Air 14 drive?", "relevant": ["KB-014"]}
+{"id": "R33", "question": "Can I upgrade the RAM in the VoltBook Pro 16?", "relevant": ["KB-015"]}
+{"id": "R34", "question": "Can I bring the VoltBook Pro 16 on a flight?", "relevant": ["KB-015"]}
+{"id": "R35", "question": "How do I put the Pulse ANC headphones in pairing mode?", "relevant": ["KB-016", "KB-021"]}
+{"id": "R36", "question": "One of my Pulse Buds Pro earbuds stopped working, how do I reset them?", "relevant": ["KB-017", "KB-021"]}
+{"id": "R37", "question": "My Aura speaker light keeps pulsing orange during setup", "relevant": ["KB-018"]}
+{"id": "R38", "question": "Does the Nova 8 come with a charger in the box?", "relevant": ["KB-019"]}
+{"id": "R39", "question": "Which charger gives the Nova 8 its fastest charging speed?", "relevant": ["KB-019", "KB-020"]}
+{"id": "R40", "question": "Will the VC-65W work with a VoltBook Pro 16?", "relevant": ["KB-020", "KB-015"]}
+{"id": "R41", "question": "My laptop will not turn on at all", "relevant": ["KB-022"]}
+{"id": "R42", "question": "The battery on my VoltBook drains really fast", "relevant": ["KB-022"]}
+{"id": "R43", "question": "Is the PowerCell 20K allowed in carry-on luggage?", "relevant": ["KB-023", "KB-002"]}
+{"id": "R44", "question": "Can I go swimming with IPX5 earbuds?", "relevant": ["KB-017"]}
+{"id": "R45", "question": "Bluetooth audio keeps cutting out on my headphones", "relevant": ["KB-021"]}

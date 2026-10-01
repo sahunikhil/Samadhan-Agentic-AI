@@ -1,0 +1,40 @@
+name: LLM evaluation
+
+# LLM-judged evals cost tokens (free-tier quota) and take minutes, so they run nightly
+# and on demand instead of on every push. The report is uploaded as an artifact and
+# the job fails if a quality gate regresses.
+on:
+  workflow_dispatch:
+    inputs:
+      suites:
+        description: "Comma-separated suites: retrieval,chunking,cache,rag,agent,redteam"
+        default: "retrieval,chunking,cache,rag,agent,redteam"
+  schedule:
+    - cron: "0 3 * * *"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      CASEFLOW_LLM__PROFILE: ${{ vars.CASEFLOW_LLM_PROFILE || 'groq' }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      CASEFLOW_RETRIEVAL__MODEL_CACHE_DIR: ${{ github.workspace }}/.models
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - uses: actions/cache@v4
+        with:
+          path: .models
+          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+      - run: uv sync --locked --extra eval
+      - run: uv run caseflow eval all --only "${{ inputs.suites || 'retrieval,chunking,cache,rag,agent,redteam' }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: eval-report, path: evals/reports/ }
+      - name: Job summary
+        if: always()
+        run: cat evals/reports/latest.md >> "$GITHUB_STEP_SUMMARY"

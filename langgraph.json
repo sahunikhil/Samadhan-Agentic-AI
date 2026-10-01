@@ -1,0 +1,10 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "python_version": "3.12",
+  "dependencies": ["."],
+  "graphs": {
+    "support": "caseflow.studio:make_graph",
+    "knowledge": "caseflow.studio:make_knowledge_graph"
+  },
+  "env": ".env"
+}

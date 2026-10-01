@@ -1,0 +1,95 @@
+# Full stack on one machine:  cp .env.example .env  (add a free LLM key)  &&  docker compose up -d
+#   UI + API       http://localhost:8000        (docs at /docs, metrics at /metrics)
+#   Knowledge MCP  http://localhost:8000/mcp/knowledge
+#   Qdrant UI      http://localhost:6333/dashboard
+#   A2A agent card http://localhost:8000/.well-known/agent-card.json
+# Distributed tracing (OpenTelemetry -> Jaeger):
+#   OTEL_ENABLED=true docker compose --profile tracing up -d   ->  Jaeger UI http://localhost:16686
+name: caseflow
+
+x-app: &app
+  build: .
+  image: caseflow:latest
+  env_file: .env
+  restart: unless-stopped
+  environment: &app-env
+    CASEFLOW_ENVIRONMENT: ${CASEFLOW_ENVIRONMENT:-dev}
+    CASEFLOW_PERSISTENCE__DATABASE_URL: postgresql://caseflow:${POSTGRES_PASSWORD:-caseflow}@postgres:5432/caseflow
+    CASEFLOW_RETRIEVAL__QDRANT_URL: http://qdrant:6333
+    CASEFLOW_MCP__COMMERCE_URL: http://commerce:8101/mcp
+    CASEFLOW_MCP__HELPDESK_URL: http://helpdesk:8102/mcp
+    CASEFLOW_MCP__COMMERCE_DB_URL: postgresql+psycopg://caseflow:${POSTGRES_PASSWORD:-caseflow}@postgres:5432/commerce
+    CASEFLOW_MCP__HELPDESK_DB_URL: postgresql+psycopg://caseflow:${POSTGRES_PASSWORD:-caseflow}@postgres:5432/helpdesk
+    CASEFLOW_OBSERVABILITY__OTEL_ENABLED: ${OTEL_ENABLED:-false}
+    OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+
+services:
+  postgres:
+    # One Postgres for everything: LangGraph checkpoints + Store (pgvector), commerce and helpdesk DBs.
+    image: pgvector/pgvector:0.8.6-pg18
+    environment:
+      POSTGRES_USER: caseflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-caseflow}
+      POSTGRES_DB: caseflow
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caseflow -d caseflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.1
+    ports: ["6333:6333"]
+    volumes: [qdrant:/qdrant/storage]
+    restart: unless-stopped
+
+  init:
+    # One-shot: seed demo data + (incrementally) index the knowledge base.
+    <<: *app
+    command: ["sh", "-c", "caseflow seed && caseflow ingest"]
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+      qdrant: { condition: service_started }
+
+  commerce:
+    <<: *app
+    command: ["caseflow", "serve", "commerce"]
+    environment:
+      <<: *app-env
+      HEALTHCHECK_URL: http://127.0.0.1:8101/health
+    depends_on:
+      init: { condition: service_completed_successfully }
+
+  helpdesk:
+    <<: *app
+    command: ["caseflow", "serve", "helpdesk"]
+    environment:
+      <<: *app-env
+      HEALTHCHECK_URL: http://127.0.0.1:8102/health
+    depends_on:
+      init: { condition: service_completed_successfully }
+
+  api:
+    <<: *app
+    command: ["caseflow", "serve", "api"]
+    ports: ["8000:8000"]
+    depends_on:
+      commerce: { condition: service_healthy }
+      helpdesk: { condition: service_healthy }
+
+  jaeger:
+    # OTLP receiver (4317 gRPC / 4318 HTTP) + UI. In production point OTEL_EXPORTER_OTLP_ENDPOINT at an
+    # OpenTelemetry Collector (sampling, PII scrubbing, fan-out to Tempo/Honeycomb/Datadog/cloud tracing).
+    image: jaegertracing/jaeger:2.21.0
+    profiles: ["tracing"]
+    ports: ["16686:16686"]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  qdrant:
