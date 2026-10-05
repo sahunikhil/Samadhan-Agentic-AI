@@ -42,6 +42,7 @@ RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --create-home app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
 COPY --from=builder --chown=app:app /app/models /app/models
+COPY --chown=app:app LICENSE THIRD_PARTY_NOTICES.md ./
 COPY --chown=app:app data ./data
 COPY --chown=app:app evals/datasets ./evals/datasets
 

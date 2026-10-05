@@ -3,7 +3,8 @@ name = "samadhan"
 version = "0.1.0"
 description = "Samadhan Agentic AI - a production-grade, multi-agent customer-support resolution platform built on LangGraph, MCP, hybrid RAG (Qdrant / pgvector) and evaluated with RAGAS."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"  # SPDX expression (PEP 639)
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 requires-python = ">=3.12,<3.14"
 authors = [{ name = "Nikhil Sahu" }]
 keywords = ["langgraph", "langchain", "mcp", "rag", "ragas", "qdrant", "multi-agent", "agentic-ai"]
