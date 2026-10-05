@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Samadhan Console</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header>
+  <h1>⚡ Samadhan</h1>
+  <span class="tag">Multi-agent support · LangGraph · MCP · hybrid RAG - demo store: Voltwise (fictional)</span>
+</header>
+<main>
+  <!-- LEFT: session + scenarios -->
+  <section>
+    <h2>Customer session</h2>
+    <div class="pad stack">
+      <select id="customer"></select>
+      <button class="primary" id="loginBtn">Sign in as customer</button>
+      <div id="who" class="muted">Not signed in</div>
+      <button id="newThread">New conversation</button>
+      <div class="muted" id="threadInfo"></div>
+    </div>
+    <h2>Try a scenario</h2>
+    <div class="pad scroll" id="scenarios"></div>
+  </section>
+
+  <!-- CENTER: chat -->
+  <section>
+    <h2>Conversation <span class="chips inline-row" id="triageChips"></span></h2>
+    <div class="scroll" id="chat"></div>
+    <div id="composer" class="row">
+      <textarea id="input" placeholder="Ask about an order, a return, a product..."></textarea>
+      <button class="primary" id="send">Send</button>
+    </div>
+  </section>
+
+  <!-- RIGHT: trace + supervisor -->
+  <div class="split">
+    <section>
+      <h2>Agent trace (live)</h2>
+      <div class="scroll trace" id="trace"></div>
+    </section>
+    <section>
+      <h2>Supervisor console</h2>
+      <div class="pad stack">
+        <div class="row"><input id="staffKey" value="dev-admin-key" placeholder="X-Admin-Key" /><input id="staffName" value="sup_jordan" placeholder="Your name" /></div>
+        <div class="muted">Approvals and human handoffs for the current conversation appear here.</div>
+      </div>
+      <div class="scroll pad" id="console"></div>
+    </section>
+  </div>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

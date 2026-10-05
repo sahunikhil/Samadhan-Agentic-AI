@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ---------------------------------------------------------------------------------------
-# One image, every service:  caseflow serve api | commerce | helpdesk | knowledge
+# One image, every service:  samadhan serve api | commerce | helpdesk | knowledge
 # One artifact to build, scan, sign and roll out - the command selects the role.
 # ---------------------------------------------------------------------------------------
 
@@ -29,12 +29,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 #    scale-from-zero container doesn't download them on its first request.
 ARG PRELOAD_MODELS=true
 RUN mkdir -p /app/models && if [ "$PRELOAD_MODELS" = "true" ]; then \
-      /app/.venv/bin/python -c "from caseflow.config import RetrievalSettings as R; from caseflow.rag.embeddings import EmbeddingModels as E; E(R(model_cache_dir='/app/models')).warmup()"; \
+      /app/.venv/bin/python -c "from samadhan.config import RetrievalSettings as R; from samadhan.rag.embeddings import EmbeddingModels as E; E(R(model_cache_dir='/app/models')).warmup()"; \
     fi
 
 # ---------------------------------------------------------------------------------------
 FROM python:3.12-slim-bookworm AS runtime
-LABEL org.opencontainers.image.title="caseflow" \
+LABEL org.opencontainers.image.title="samadhan" \
       org.opencontainers.image.description="Multi-agent customer support: LangGraph + MCP + hybrid RAG" \
       org.opencontainers.image.licenses="MIT"
 
@@ -48,13 +48,15 @@ COPY --chown=app:app evals/datasets ./evals/datasets
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    CASEFLOW_RETRIEVAL__MODEL_CACHE_DIR=/app/models \
-    CASEFLOW_OBSERVABILITY__LOG_JSON=true \
+    SAMADHAN_RETRIEVAL__MODEL_CACHE_DIR=/app/models \
+    SAMADHAN_OBSERVABILITY__LOG_JSON=true \
     HF_HUB_OFFLINE=1
 
+# Dev/Compose: the auto-generated service-token key pair lives on a shared volume mounted here.
+RUN mkdir -p /app/.data/keys && chown -R app:app /app/.data
 USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD python -c "import os,urllib.request; urllib.request.urlopen(os.environ.get('HEALTHCHECK_URL','http://127.0.0.1:8000/healthz'), timeout=4)" || exit 1
 
-CMD ["caseflow", "serve", "api"]
+CMD ["samadhan", "serve", "api"]

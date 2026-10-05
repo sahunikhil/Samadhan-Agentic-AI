@@ -1,4 +1,4 @@
-"""A2A: CaseFlow as a remote agent, driven by the official ``a2a-sdk`` client over real HTTP.
+"""A2A: Samadhan as a remote agent, driven by the official ``a2a-sdk`` client over real HTTP.
 
 Covers discovery (agent card), transport auth (401), the task lifecycle mapping
 (completed / input-required -> completed / staff wait), and per-customer task isolation.
@@ -17,11 +17,11 @@ from a2a.utils.errors import TaskNotFoundError
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 
-from caseflow.a2a_server import a2a_thread_id, parse_confirmation
-from caseflow.api.app import create_app
-from caseflow.api.security import issue_customer_token
-from caseflow.config import Settings
-from caseflow.llm import ModelRegistry
+from samadhan.a2a_server import a2a_thread_id, parse_confirmation
+from samadhan.api.app import create_app
+from samadhan.api.security import issue_customer_token
+from samadhan.config import Settings
+from samadhan.llm import ModelRegistry
 from tests.conftest import _free_port, _ServerThread
 from tests.fakes import ScriptedChatModel
 from tests.integration.test_support_graph import responder

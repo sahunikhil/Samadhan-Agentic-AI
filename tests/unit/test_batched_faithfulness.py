@@ -11,7 +11,7 @@ pytest.importorskip("ragas")
 from ragas.metrics.collections import Faithfulness
 from ragas.metrics.collections.faithfulness.util import NLIStatementOutput, StatementFaithfulnessAnswer
 
-from caseflow.evaluation.ragas_adapters import batched_faithfulness
+from samadhan.evaluation.ragas_adapters import batched_faithfulness
 
 STATEMENTS = [f"claim {i}" for i in range(13)]
 

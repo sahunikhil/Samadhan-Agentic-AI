@@ -5,13 +5,13 @@ install:        ## install dependencies (incl. eval + dev tools)
 	uv sync --extra eval
 
 seed:           ## create + seed demo databases
-	uv run caseflow seed
+	uv run samadhan seed
 
 ingest:         ## index the knowledge base (incremental)
-	uv run caseflow ingest
+	uv run samadhan ingest
 
 dev: seed       ## run MCP servers + API + UI locally on http://localhost:8000
-	uv run caseflow serve all
+	uv run samadhan serve all
 
 test:           ## unit + integration tests (no API key needed)
 	uv run pytest -q
@@ -23,22 +23,22 @@ typecheck:
 	uv run mypy
 
 eval-retrieval: ## retrieval ablation (no LLM)
-	uv run caseflow eval retrieval
+	uv run samadhan eval retrieval
 
 eval-chunking:  ## chunking ablation: quality vs context cost (no LLM)
-	uv run caseflow eval chunking
+	uv run samadhan eval chunking
 
 eval-cache:     ## semantic-cache safety: similarity sweep + LLM-verified false-hit rate
-	uv run caseflow eval cache
+	uv run samadhan eval cache
 
 eval:           ## full evaluation suite with quality gates (needs an LLM key)
-	uv run caseflow eval all
+	uv run samadhan eval all
 
 graph:          ## print the Mermaid diagram of the agent graph
-	uv run caseflow graph
+	uv run samadhan graph
 
 docker:
-	docker build -t caseflow:latest .
+	docker build -t samadhan:latest .
 
 up:             ## full stack: Postgres + Qdrant + MCP servers + API
 	docker compose up -d --build
@@ -50,4 +50,4 @@ studio:         ## LangGraph Studio / Agent Server (start MCP servers first: mak
 	uv run --with "langgraph-cli[inmem]" langgraph dev --allow-blocking
 
 mcp:            ## run commerce + helpdesk MCP servers in the background
-	uv run caseflow serve commerce & uv run caseflow serve helpdesk &
+	uv run samadhan serve commerce & uv run samadhan serve helpdesk &

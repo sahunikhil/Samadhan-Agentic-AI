@@ -1,23 +1,30 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: caseflow-config
+  name: samadhan-config
 data:
-  CASEFLOW_ENVIRONMENT: prod
-  CASEFLOW_API__DEMO_MODE: "false"
-  CASEFLOW_OBSERVABILITY__LOG_JSON: "true"
-  CASEFLOW_LLM__PROFILE: gemini
-  CASEFLOW_RETRIEVAL__QDRANT_URL: http://qdrant:6333
-  CASEFLOW_MCP__COMMERCE_URL: http://commerce:8101/mcp
-  CASEFLOW_MCP__HELPDESK_URL: http://helpdesk:8102/mcp
+  SAMADHAN_ENVIRONMENT: prod
+  SAMADHAN_API__DEMO_MODE: "false"
+  SAMADHAN_OBSERVABILITY__LOG_JSON: "true"
+  SAMADHAN_LLM__PROFILE: gemini
+  SAMADHAN_RETRIEVAL__QDRANT_URL: http://qdrant:6333
+  SAMADHAN_MCP__COMMERCE_URL: http://commerce:8101/mcp
+  SAMADHAN_MCP__HELPDESK_URL: http://helpdesk:8102/mcp
+  # Service-token PUBLIC key (not secret) - every service verifies with it. Paste the one-line value
+  # printed by `samadhan keys generate`. (Alternative: SAMADHAN_MCP__JWT_JWKS_URI=http://api:8000/.well-known/jwks.json)
+  SAMADHAN_MCP__JWT_PUBLIC_KEY: "REPLACE_WITH_PUBLIC_KEY_FROM_samadhan_keys_generate"
 
 # Template only - create the real secret with External Secrets / Sealed Secrets / your cloud's
 # secret manager CSI driver. Never commit real values.
-#   kubectl -n caseflow create secret generic caseflow-secrets \
+#   kubectl -n samadhan create secret generic samadhan-secrets \
 #     --from-literal=GOOGLE_API_KEY=... --from-literal=GROQ_API_KEY=... \
-#     --from-literal=CASEFLOW_PERSISTENCE__DATABASE_URL=postgresql://... \
-#     --from-literal=CASEFLOW_MCP__COMMERCE_DB_URL=postgresql+psycopg://.../commerce \
-#     --from-literal=CASEFLOW_MCP__HELPDESK_DB_URL=postgresql+psycopg://.../helpdesk \
-#     --from-literal=CASEFLOW_MCP__JWT_SECRET=$(openssl rand -hex 32) \
-#     --from-literal=CASEFLOW_API__TOKEN_SECRET=$(openssl rand -hex 32) \
-#     --from-literal=CASEFLOW_API__ADMIN_API_KEY=$(openssl rand -hex 24)
+#     --from-literal=SAMADHAN_PERSISTENCE__DATABASE_URL=postgresql://... \
+#     --from-literal=SAMADHAN_MCP__COMMERCE_DB_URL=postgresql+psycopg://.../commerce \
+#     --from-literal=SAMADHAN_MCP__HELPDESK_DB_URL=postgresql+psycopg://.../helpdesk \
+#     --from-literal=SAMADHAN_API__TOKEN_SECRET=$(openssl rand -hex 32) \
+#     --from-literal=SAMADHAN_API__ADMIN_API_KEY=$(openssl rand -hex 24)
+#
+# The service-token PRIVATE key is a separate secret mounted by the API Deployment only - the MCP
+# servers never see it (they verify with the public key above):
+#   kubectl -n samadhan create secret generic samadhan-api-signing \
+#     --from-literal=SAMADHAN_MCP__JWT_PRIVATE_KEY="<one-line private key from samadhan keys generate>"

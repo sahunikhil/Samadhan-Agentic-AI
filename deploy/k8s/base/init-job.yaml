@@ -3,7 +3,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: caseflow-ingest
+  name: samadhan-ingest
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 3600
@@ -13,9 +13,9 @@ spec:
       securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: ingest
-          image: caseflow
-          args: ["sh", "-c", "caseflow seed && caseflow ingest"]
+          image: samadhan
+          args: ["sh", "-c", "samadhan seed && samadhan ingest"]
           envFrom:
-            - configMapRef: { name: caseflow-config }
-            - secretRef: { name: caseflow-secrets }
+            - configMapRef: { name: samadhan-config }
+            - secretRef: { name: samadhan-secrets }
           securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: ["ALL"] } }

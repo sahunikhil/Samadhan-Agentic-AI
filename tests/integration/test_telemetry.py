@@ -11,9 +11,9 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from opentelemetry.trace import SpanKind
 
-import caseflow.rag.retriever as retriever_module
-import caseflow.telemetry as telemetry
-from caseflow.service import SupportService
+import samadhan.rag.retriever as retriever_module
+import samadhan.telemetry as telemetry
+from samadhan.service import SupportService
 from tests.integration.test_support_graph import service  # noqa: F401 - fixture
 
 
@@ -87,7 +87,7 @@ async def test_a_turn_is_one_trace_with_genai_spans(service: SupportService, spa
 
 
 async def test_tracing_disabled_adds_no_handler(service: SupportService) -> None:  # noqa: F811
-    from caseflow.observability import tracing_callbacks
+    from samadhan.observability import tracing_callbacks
 
     assert not telemetry.tracing_enabled()
     assert not any(isinstance(cb, telemetry.OTelCallbackHandler) for cb in tracing_callbacks(service.c.settings))

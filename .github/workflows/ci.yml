@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
 
 concurrency:
@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CASEFLOW_ENVIRONMENT: test
-  CASEFLOW_RETRIEVAL__MODEL_CACHE_DIR: ${{ github.workspace }}/.models
+  SAMADHAN_ENVIRONMENT: test
+  SAMADHAN_RETRIEVAL__MODEL_CACHE_DIR: ${{ github.workspace }}/.models
   PYTHONIOENCODING: utf-8
 
 jobs:
@@ -38,9 +38,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .models
-          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+          key: fastembed-${{ hashFiles('src/samadhan/config.py') }}
       - run: uv sync --locked
-      - run: uv run pytest -q --cov=caseflow --cov-report=term-missing:skip-covered
+      - run: uv run pytest -q --cov=samadhan --cov-report=term-missing:skip-covered
+
+  dependency-audit:
+    name: Dependency audit (production dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      # The shipped image's dependency set (no dev/eval extras) must have no known vulnerabilities.
+      - run: uv export --locked --format requirements-txt --no-hashes --no-dev --extra observability --no-emit-project > prod-requirements.txt
+      - run: uvx pip-audit -r prod-requirements.txt --no-deps --disable-pip
 
   pgvector:
     name: pgvector backend (Postgres service)
@@ -48,12 +58,12 @@ jobs:
     services:
       postgres:
         image: pgvector/pgvector:0.8.6-pg18
-        env: { POSTGRES_USER: caseflow, POSTGRES_PASSWORD: caseflow, POSTGRES_DB: caseflow }
+        env: { POSTGRES_USER: samadhan, POSTGRES_PASSWORD: samadhan, POSTGRES_DB: samadhan }
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U caseflow" --health-interval 5s --health-timeout 3s --health-retries 20
+          --health-cmd "pg_isready -U samadhan" --health-interval 5s --health-timeout 3s --health-retries 20
     env:
-      CASEFLOW_TEST_DATABASE_URL: postgresql://caseflow:caseflow@localhost:5432/caseflow
+      SAMADHAN_TEST_DATABASE_URL: postgresql://samadhan:samadhan@localhost:5432/samadhan
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
@@ -61,7 +71,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .models
-          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+          key: fastembed-${{ hashFiles('src/samadhan/config.py') }}
       - run: uv sync --locked
       - run: uv run pytest -q -m postgres
 
@@ -75,9 +85,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .models
-          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+          key: fastembed-${{ hashFiles('src/samadhan/config.py') }}
       - run: uv sync --locked --extra eval
-      - run: uv run caseflow eval all --only retrieval
+      - run: uv run samadhan eval all --only retrieval
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: retrieval-report, path: evals/reports/ }
@@ -93,6 +103,6 @@ jobs:
         with:
           context: .
           push: false
-          tags: caseflow:ci
+          tags: samadhan:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max

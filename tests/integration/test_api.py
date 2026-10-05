@@ -3,20 +3,39 @@
 from __future__ import annotations
 
 import json
+import time
 from collections.abc import Iterator
 from typing import Any
 
+import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 
-from caseflow.api.app import create_app
-from caseflow.llm import ModelRegistry
+from samadhan.api.app import create_app
+from samadhan.llm import ModelRegistry
 from tests.fakes import ScriptedChatModel
 from tests.integration.test_support_graph import responder
 
 STAFF = {"X-Admin-Key": "dev-admin-key", "X-Staff-Name": "sup_test"}
+IDP_ISSUER = "https://idp.example.test/realms/voltwise"
+CUSTOMER_IDP_ISSUER = "https://idp.example.test/realms/customers"
+_IDP_KEY = ec.generate_private_key(ec.SECP256R1())
+IDP_PUBLIC = (
+    _IDP_KEY.public_key()
+    .public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo)
+    .decode()
+)
+
+
+def _sso(user: str, roles: list[str], key: Any = _IDP_KEY, issuer: str = IDP_ISSUER) -> dict[str, str]:
+    """An IdP-issued staff access token (as Keycloak / Auth0 / Entra would mint it)."""
+    claims = {"iss": issuer, "aud": "samadhan", "sub": user, "preferred_username": user,
+              "roles": roles, "exp": int(time.time()) + 300}  # fmt: skip
+    return {"Authorization": f"Bearer {jwt.encode(claims, key, algorithm='ES256')}"}
 
 
 def sse_events(response: Any) -> list[tuple[str, dict[str, Any]]]:
@@ -32,7 +51,21 @@ def sse_events(response: Any) -> list[tuple[str, dict[str, Any]]]:
 @pytest.fixture(scope="module")
 def client(mcp_servers: Any) -> Iterator[TestClient]:
     settings = mcp_servers.model_copy(
-        update={"retrieval": mcp_servers.retrieval.model_copy(update={"qdrant_path": ":memory:"})}
+        update={
+            "retrieval": mcp_servers.retrieval.model_copy(update={"qdrant_path": ":memory:"}),
+            # Staff SSO against a test identity provider (static public key instead of a JWKS URL).
+            "api": mcp_servers.api.model_copy(
+                update={
+                    "staff_oidc_issuer": IDP_ISSUER,
+                    "staff_oidc_audience": "samadhan",
+                    "staff_oidc_public_key": IDP_PUBLIC,
+                    "customer_oidc_issuer": CUSTOMER_IDP_ISSUER,
+                    "customer_oidc_audience": "samadhan",
+                    "customer_oidc_public_key": IDP_PUBLIC,
+                    "customer_id_claim": "customer_id",
+                }
+            ),
+        }
     )
     models = ModelRegistry(settings.llm)
     fake = ScriptedChatModel(responder=responder)
@@ -53,7 +86,7 @@ def test_ops_endpoints(client: TestClient) -> None:
     assert client.get("/healthz").json() == {"status": "ok"}
     ready = client.get("/readyz").json()
     assert ready["status"] == "ready" and ready["vector_chunks"] > 50
-    assert "caseflow_http_requests_total" in client.get("/metrics").text
+    assert "samadhan_http_requests_total" in client.get("/metrics").text
 
 
 def test_auth_is_required(client: TestClient) -> None:
@@ -167,11 +200,11 @@ def test_feedback_flywheel(client: TestClient) -> None:
     assert record["message"] == "Can I return opened earbuds?" and record["reason"] == "incomplete"
     assert "4242 4242 4242 4242" not in record["comment"]  # PII masked before storage
     assert (
-        'caseflow_feedback_total{intent="policy_question",rating="down",reason="incomplete"}'
+        'samadhan_feedback_total{intent="policy_question",rating="down",reason="incomplete"}'
         in client.get("/metrics").text
     )
 
-    from caseflow.feedback import to_candidate
+    from samadhan.feedback import to_candidate
 
     candidate = to_candidate(record)
     assert candidate["needs_label"] and candidate["message"] == record["message"] and candidate["id"].startswith("C-")
@@ -188,9 +221,64 @@ def test_ui_escapes_model_output_and_sends_security_headers(client: TestClient) 
     import re
 
     page = client.get("/")
-    html = page.text
-    unescaped = [m for m in re.findall(r"innerHTML = `[^`]*`", html) if re.search(r"\$\{(?!esc\()", m)]
+    script = client.get("/static/app.js")
+    assert script.status_code == 200 and client.get("/static/app.css").status_code == 200
+    unescaped = [m for m in re.findall(r"innerHTML = `[^`]*`", script.text) if re.search(r"\$\{(?!esc\()", m)]
     assert not unescaped, unescaped
+    assert "<script>" not in page.text and "<style>" not in page.text and "style=" not in page.text + script.text
     csp = page.headers["content-security-policy"]
     assert "frame-ancestors 'none'" in csp and "connect-src 'self'" in csp
+    assert "unsafe-inline" not in csp  # inline script/style injected into the page would not run
     assert page.headers["x-content-type-options"] == "nosniff"
+
+
+def test_staff_sso_roles_gate_refund_approvals_and_are_audited(client: TestClient) -> None:
+    from structlog.testing import capture_logs
+
+    customer = _login(client, "cust_002")
+    with client.stream(
+        "POST", "/v1/chat/stream", json={"message": "Where is my refund for my headphones return?"}, headers=customer
+    ) as r:
+        events = sse_events(r)
+    thread_id = events[0][1]["thread_id"]
+    [pending] = events[-1][1]["pending"]
+    decision = {"decisions": {pending["interrupt_id"]: {"decision": "approve"}}}
+
+    agent = _sso("ana.agent", ["agent"])
+    assert client.get(f"/v1/threads/{thread_id}/history", headers=agent).status_code == 200  # staff access
+    assert client.post(f"/v1/threads/{thread_id}/resume", json=decision, headers=agent).status_code == 403
+    assert client.post("/v1/admin/ingest", headers=agent).status_code == 403  # admin role required
+    assert client.get("/v1/admin/feedback", headers=_sso("nobody", [])).status_code == 200  # staff, no roles
+    assert client.post(f"/v1/threads/{thread_id}/resume", json=decision, headers=_sso("x", [])).status_code == 403
+
+    forged = _sso("mallory", ["supervisor"], key=ec.generate_private_key(ec.SECP256R1()))
+    assert client.get(f"/v1/threads/{thread_id}/history", headers=forged).status_code == 401
+    wrong_idp = _sso("mallory", ["supervisor"], issuer="https://evil.example")
+    assert client.get(f"/v1/threads/{thread_id}/history", headers=wrong_idp).status_code == 401
+
+    with (
+        capture_logs() as logs,
+        client.stream(
+            "POST", f"/v1/threads/{thread_id}/resume", json=decision, headers=_sso("sam.supervisor", ["supervisor"])
+        ) as r,
+    ):
+        resumed = sse_events(r)
+    assert resumed[-1][0] == "final" and resumed[-1][1]["outcome"] == "resolved"
+    [entry] = [e for e in logs if e.get("audit") and e["action"] == "refund_approval_answered"]
+    assert entry["actor"] == "sam.supervisor" and entry["thread_id"] == thread_id
+
+
+def test_customer_tokens_from_the_identity_provider(client: TestClient) -> None:
+    def idp_customer(customer_id: str, issuer: str = CUSTOMER_IDP_ISSUER) -> dict[str, str]:
+        claims = {"iss": issuer, "aud": "samadhan", "sub": "auth0|42", "customer_id": customer_id,
+                  "exp": int(time.time()) + 300}  # fmt: skip
+        return {"Authorization": f"Bearer {jwt.encode(claims, _IDP_KEY, algorithm='ES256')}"}
+
+    reply = client.post("/v1/chat", json={"message": "hello"}, headers=idp_customer("cust_001"))
+    assert reply.status_code == 200
+    thread_id = reply.json()["thread_id"]
+    assert thread_id.startswith("cust_001--"), "identity (and ownership) comes from the verified claim"
+    assert client.get(f"/v1/threads/{thread_id}", headers=idp_customer("cust_002")).status_code == 403
+    # A *staff*-realm token is not a customer identity: the issuer is checked.
+    staff_realm = idp_customer("cust_001", IDP_ISSUER)
+    assert client.post("/v1/chat", json={"message": "hi"}, headers=staff_realm).status_code == 403

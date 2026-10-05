@@ -5,22 +5,24 @@
 #   A2A agent card http://localhost:8000/.well-known/agent-card.json
 # Distributed tracing (OpenTelemetry -> Jaeger):
 #   OTEL_ENABLED=true docker compose --profile tracing up -d   ->  Jaeger UI http://localhost:16686
-name: caseflow
+name: samadhan
 
 x-app: &app
   build: .
-  image: caseflow:latest
+  image: samadhan:latest
   env_file: .env
   restart: unless-stopped
+  # Dev: one auto-generated Ed25519 key pair shared by the API (signs) and the MCP servers (verify).
+  volumes: [keys:/app/.data/keys]
   environment: &app-env
-    CASEFLOW_ENVIRONMENT: ${CASEFLOW_ENVIRONMENT:-dev}
-    CASEFLOW_PERSISTENCE__DATABASE_URL: postgresql://caseflow:${POSTGRES_PASSWORD:-caseflow}@postgres:5432/caseflow
-    CASEFLOW_RETRIEVAL__QDRANT_URL: http://qdrant:6333
-    CASEFLOW_MCP__COMMERCE_URL: http://commerce:8101/mcp
-    CASEFLOW_MCP__HELPDESK_URL: http://helpdesk:8102/mcp
-    CASEFLOW_MCP__COMMERCE_DB_URL: postgresql+psycopg://caseflow:${POSTGRES_PASSWORD:-caseflow}@postgres:5432/commerce
-    CASEFLOW_MCP__HELPDESK_DB_URL: postgresql+psycopg://caseflow:${POSTGRES_PASSWORD:-caseflow}@postgres:5432/helpdesk
-    CASEFLOW_OBSERVABILITY__OTEL_ENABLED: ${OTEL_ENABLED:-false}
+    SAMADHAN_ENVIRONMENT: ${SAMADHAN_ENVIRONMENT:-dev}
+    SAMADHAN_PERSISTENCE__DATABASE_URL: postgresql://samadhan:${POSTGRES_PASSWORD:-samadhan}@postgres:5432/samadhan
+    SAMADHAN_RETRIEVAL__QDRANT_URL: http://qdrant:6333
+    SAMADHAN_MCP__COMMERCE_URL: http://commerce:8101/mcp
+    SAMADHAN_MCP__HELPDESK_URL: http://helpdesk:8102/mcp
+    SAMADHAN_MCP__COMMERCE_DB_URL: postgresql+psycopg://samadhan:${POSTGRES_PASSWORD:-samadhan}@postgres:5432/commerce
+    SAMADHAN_MCP__HELPDESK_DB_URL: postgresql+psycopg://samadhan:${POSTGRES_PASSWORD:-samadhan}@postgres:5432/helpdesk
+    SAMADHAN_OBSERVABILITY__OTEL_ENABLED: ${OTEL_ENABLED:-false}
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
 
 services:
@@ -28,14 +30,14 @@ services:
     # One Postgres for everything: LangGraph checkpoints + Store (pgvector), commerce and helpdesk DBs.
     image: pgvector/pgvector:0.8.6-pg18
     environment:
-      POSTGRES_USER: caseflow
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-caseflow}
-      POSTGRES_DB: caseflow
+      POSTGRES_USER: samadhan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-samadhan}
+      POSTGRES_DB: samadhan
     volumes:
       - pgdata:/var/lib/postgresql
       - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U caseflow -d caseflow"]
+      test: ["CMD-SHELL", "pg_isready -U samadhan -d samadhan"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -50,7 +52,7 @@ services:
   init:
     # One-shot: seed demo data + (incrementally) index the knowledge base.
     <<: *app
-    command: ["sh", "-c", "caseflow seed && caseflow ingest"]
+    command: ["sh", "-c", "samadhan keys ensure && samadhan seed && samadhan ingest"]
     restart: "no"
     depends_on:
       postgres: { condition: service_healthy }
@@ -58,7 +60,7 @@ services:
 
   commerce:
     <<: *app
-    command: ["caseflow", "serve", "commerce"]
+    command: ["samadhan", "serve", "commerce"]
     environment:
       <<: *app-env
       HEALTHCHECK_URL: http://127.0.0.1:8101/health
@@ -67,7 +69,7 @@ services:
 
   helpdesk:
     <<: *app
-    command: ["caseflow", "serve", "helpdesk"]
+    command: ["samadhan", "serve", "helpdesk"]
     environment:
       <<: *app-env
       HEALTHCHECK_URL: http://127.0.0.1:8102/health
@@ -76,7 +78,7 @@ services:
 
   api:
     <<: *app
-    command: ["caseflow", "serve", "api"]
+    command: ["samadhan", "serve", "api"]
     ports: ["8000:8000"]
     depends_on:
       commerce: { condition: service_healthy }
@@ -91,5 +93,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  keys:
   pgdata:
   qdrant:

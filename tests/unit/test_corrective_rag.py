@@ -8,10 +8,10 @@ import pytest
 from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
 
-from caseflow.config import Settings
-from caseflow.llm import ModelRegistry
-from caseflow.rag.graph import GroundedAnswer, SearchPlan, build_knowledge_graph
-from caseflow.rag.stores.base import SearchHit
+from samadhan.config import Settings
+from samadhan.llm import ModelRegistry
+from samadhan.rag.graph import GroundedAnswer, SearchPlan, build_knowledge_graph
+from samadhan.rag.stores.base import SearchHit
 from tests.fakes import ScriptedChatModel, text_of
 
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from caseflow.config import LLMSettings
-from caseflow.llm import ModelRegistry
+from samadhan.config import LLMSettings
+from samadhan.llm import ModelRegistry
 
 
 def test_roles_fall_back_to_the_other_role_of_the_profile() -> None:

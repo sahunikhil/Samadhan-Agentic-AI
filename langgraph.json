@@ -3,8 +3,8 @@
   "python_version": "3.12",
   "dependencies": ["."],
   "graphs": {
-    "support": "caseflow.studio:make_graph",
-    "knowledge": "caseflow.studio:make_knowledge_graph"
+    "support": "samadhan.studio:make_graph",
+    "knowledge": "samadhan.studio:make_knowledge_graph"
   },
   "env": ".env"
 }

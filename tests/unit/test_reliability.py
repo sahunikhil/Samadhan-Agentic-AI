@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from caseflow.evaluation.reliability import pass_at_k, pass_hat_k, reliability_summary
+from samadhan.evaluation.reliability import pass_at_k, pass_hat_k, reliability_summary
 
 
 def test_estimators_match_their_definitions() -> None:

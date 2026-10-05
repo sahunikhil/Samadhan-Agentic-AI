@@ -6,7 +6,7 @@ import pytest
 from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, LLMResult
 
-from caseflow.cost import ModelPrice, TurnCostTracker, call_cost, price_for
+from samadhan.cost import ModelPrice, TurnCostTracker, call_cost, price_for
 
 
 def test_price_lookup_handles_provider_prefixes_overrides_and_versions() -> None:

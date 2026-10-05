@@ -16,10 +16,13 @@ services:
 
   api:
     ports: !reset []  # only reachable through Caddy
+    # Service-token keys (`samadhan keys generate`): the PUBLIC key goes in .env (all services), the
+    # PRIVATE key in .env.api - loaded by the API only, so the MCP servers can verify but never sign.
+    env_file: [.env, .env.api]
     environment:
-      CASEFLOW_ENVIRONMENT: prod
-      CASEFLOW_API__DEMO_MODE: "false"
-      CASEFLOW_API__CORS_ORIGINS: '["https://${DOMAIN}"]'
+      SAMADHAN_ENVIRONMENT: prod
+      SAMADHAN_API__DEMO_MODE: "false"
+      SAMADHAN_API__CORS_ORIGINS: '["https://${DOMAIN}"]'
     deploy:
       resources:
         limits: { memory: 1536M }

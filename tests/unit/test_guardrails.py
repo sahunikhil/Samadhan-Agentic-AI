@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from caseflow.agents.guardrails import mask_card_numbers, output_issues, screen_input
+from samadhan.agents.guardrails import mask_card_numbers, output_issues, screen_input
 
 
 @pytest.mark.parametrize(

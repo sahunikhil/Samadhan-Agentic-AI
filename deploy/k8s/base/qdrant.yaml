@@ -1,5 +1,5 @@
 # Self-hosted single-node Qdrant. Alternatives: Qdrant Cloud (free 1 GB cluster) or
-# CASEFLOW_RETRIEVAL__BACKEND=pgvector to drop this component entirely.
+# SAMADHAN_RETRIEVAL__BACKEND=pgvector to drop this component entirely.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

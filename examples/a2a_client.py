@@ -1,6 +1,6 @@
-"""Talk to CaseFlow as another agent would - over A2A, knowing nothing about LangGraph.
+"""Talk to Samadhan as another agent would - over A2A, knowing nothing about LangGraph.
 
-    uv run caseflow serve api                       # terminal 1
+    uv run samadhan serve api                       # terminal 1
     uv run python examples/a2a_client.py cust_002 "Please cancel order VW-10005"
 
 What happens:
@@ -21,8 +21,8 @@ from a2a.client import ClientConfig, create_client
 from a2a.helpers import get_artifact_text, get_message_text, new_text_message
 from a2a.types import Role, SendMessageRequest, TaskState
 
-from caseflow.api.security import issue_customer_token
-from caseflow.config import get_settings
+from samadhan.api.security import issue_customer_token
+from samadhan.config import get_settings
 
 BASE_URL = "http://localhost:8000"
 

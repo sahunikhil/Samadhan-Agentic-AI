@@ -17,14 +17,14 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel
 
-from caseflow.agents.graph import build_support_graph
-from caseflow.agents.specialists import GraphDeps
-from caseflow.agents.state import GuardVerdict, MemoryUpdate, Task, TriageDecision
-from caseflow.agents.toolkit import MCPToolkit
-from caseflow.bootstrap import Container
-from caseflow.llm import ModelRegistry
-from caseflow.rag.graph import GroundedAnswer, SearchPlan, build_knowledge_graph
-from caseflow.service import SupportService
+from samadhan.agents.graph import build_support_graph
+from samadhan.agents.specialists import GraphDeps
+from samadhan.agents.state import GuardVerdict, MemoryUpdate, Task, TriageDecision
+from samadhan.agents.toolkit import MCPToolkit
+from samadhan.bootstrap import Container
+from samadhan.llm import ModelRegistry
+from samadhan.rag.graph import GroundedAnswer, SearchPlan, build_knowledge_graph
+from samadhan.service import SupportService
 from tests.fakes import ScriptedChatModel, last_human, text_of, tool_call
 
 # Triage decisions keyed by a phrase in the customer's latest message.

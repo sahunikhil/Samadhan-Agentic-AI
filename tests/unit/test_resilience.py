@@ -9,8 +9,8 @@ from langchain_core.exceptions import OutputParserException
 from langchain_core.runnables import RunnableLambda
 from langchain_core.tools import ToolException
 
-import caseflow.resilience as resilience
-from caseflow.resilience import BreakerRegistry, CircuitBreaker, CircuitOpenError, State, guarded, is_dependency_failure
+import samadhan.resilience as resilience
+from samadhan.resilience import BreakerRegistry, CircuitBreaker, CircuitOpenError, State, guarded, is_dependency_failure
 
 
 class Clock:

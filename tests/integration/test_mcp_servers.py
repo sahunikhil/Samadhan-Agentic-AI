@@ -9,9 +9,9 @@ from fastmcp.client import Client
 from fastmcp.client.auth import BearerAuth
 from pydantic import SecretStr
 
-from caseflow.agents.toolkit import MCPToolkit, is_destructive
-from caseflow.mcp_servers.auth import mint_service_token
-from caseflow.mcp_servers.knowledge.server import create_knowledge_server
+from samadhan.agents.toolkit import MCPToolkit, is_destructive
+from samadhan.mcp_servers.auth import generate_key_pair, mint_service_token
+from samadhan.mcp_servers.knowledge.server import create_knowledge_server
 
 
 async def test_tool_annotations_and_hidden_identity_parameter(mcp_servers: Any) -> None:
@@ -42,7 +42,8 @@ async def test_customers_cannot_read_each_others_orders(mcp_servers: Any) -> Non
 
 
 async def test_forged_or_missing_tokens_are_rejected(mcp_servers: Any) -> None:
-    wrong_key = mcp_servers.mcp.model_copy(update={"jwt_secret": SecretStr("x" * 40)})
+    # A validly-formed EdDSA token signed by a *different* key (e.g. an attacker's) is rejected.
+    wrong_key = mcp_servers.mcp.model_copy(update={"jwt_private_key": SecretStr(generate_key_pair()[0])})
     for bad in ("not-a-jwt", mint_service_token(wrong_key, subject="cust_001")):
         with pytest.raises(Exception):
             async with Client(mcp_servers.mcp.commerce_url, auth=BearerAuth(bad)) as c:
@@ -110,13 +111,35 @@ async def test_return_status_tells_the_agent_what_to_do_next(mcp_servers: Any) -
 RW = ("refunds:write", "returns:write", "orders:read")
 
 
+async def create_return(settings: Any, customer: str, args: dict[str, Any], *, confirm: bool = True) -> Any:
+    """Call create_return as the customer would through a chat client: the server asks for
+    confirmation (MCP elicitation) and the handler answers it."""
+    token = mint_service_token(settings.mcp, subject=customer, scopes=RW)
+    asked: list[str] = []
+
+    async def customer_answers(message: str, response_type: Any, params: Any, context: Any) -> dict[str, bool]:
+        asked.append(message)
+        return {"confirm": confirm}
+
+    async with Client(settings.mcp.commerce_url, auth=BearerAuth(token), elicitation_handler=customer_answers) as c:
+        result = await c.call_tool("create_return", args)
+    data = result.structured_content or {}
+    data = data.get("result", data)
+    return {**data, "_asked": asked}
+
+
 async def test_refund_invariants_hold_on_the_server(mcp_servers: Any) -> None:
     """Money rules the agent cannot talk its way past: idempotent RMA, cap, no double refund."""
     toolkit = MCPToolkit(mcp_servers)
     call = lambda tool, args: toolkit.call("cust_006", "commerce", tool, args, scopes=RW)  # noqa: E731
-    rma = await call("create_return", {"order_id": "VW-10013", "sku": "PULSE-CUSH", "reason": "damaged_on_arrival"})
+    rma = await create_return(
+        mcp_servers, "cust_006", {"order_id": "VW-10013", "sku": "PULSE-CUSH", "reason": "damaged_on_arrival"}
+    )
+    assert rma["_asked"] and "$29.00" in rma["_asked"][0], "the customer confirms the exact amount first"
     assert rma["instant_refund_eligible"] and rma["refund_amount"] == pytest.approx(29.0)
-    again = await call("create_return", {"order_id": "VW-10013", "sku": "PULSE-CUSH", "reason": "damaged_on_arrival"})
+    again = await create_return(
+        mcp_servers, "cust_006", {"order_id": "VW-10013", "sku": "PULSE-CUSH", "reason": "damaged_on_arrival"}
+    )
     assert again["rma_id"] == rma["rma_id"], "create_return is idempotent"
     refund_args = {"order_id": "VW-10013", "reason": "damaged_on_arrival"}
     with pytest.raises(Exception, match="exceeds the refundable amount"):
@@ -147,8 +170,18 @@ async def test_price_adjustment_check_and_refund_agree(mcp_servers: Any) -> None
 async def test_returned_items_are_not_price_adjusted(mcp_servers: Any) -> None:
     toolkit = MCPToolkit(mcp_servers)
     call = lambda tool, args: toolkit.call("cust_004", "commerce", tool, args, scopes=RW)  # noqa: E731
-    await call("create_return", {"order_id": "VW-10010", "sku": "VC-140W", "reason": "changed_mind"})
+    await create_return(mcp_servers, "cust_004", {"order_id": "VW-10010", "sku": "VC-140W", "reason": "changed_mind"})
     check = await call("check_price_adjustment", {"order_id": "VW-10010"})
     assert not check["eligible"] and check["lines"][0]["returned"]
     with pytest.raises(Exception, match="Nothing left"):  # and issue_refund agrees with the check
         await call("issue_refund", {"order_id": "VW-10010", "amount": 20.0, "reason": "price_adjustment"})
+
+
+async def test_a_return_is_only_created_when_the_customer_confirms(mcp_servers: Any) -> None:
+    args = {"order_id": "VW-10007", "sku": "VB-PRO-16", "reason": "changed_mind"}
+    declined = await create_return(mcp_servers, "cust_003", args, confirm=False)
+    assert declined["created"] is False and "$1607.16" in declined["_asked"][0]
+    toolkit = MCPToolkit(mcp_servers)
+    status = await toolkit.call("cust_003", "commerce", "get_return_status", {"order_id": "VW-10007"}, scopes=RW)
+    statuses = status if isinstance(status, list) else status.get("result", [])
+    assert not [r for r in statuses if r.get("type") == "return"], "declining leaves no RMA behind"

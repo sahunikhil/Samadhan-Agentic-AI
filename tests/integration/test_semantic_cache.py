@@ -12,11 +12,11 @@ from langchain_core.runnables import RunnableLambda
 from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel
 
-from caseflow.config import Settings
-from caseflow.llm import ModelRegistry
-from caseflow.rag.embeddings import FastEmbedEmbeddings
-from caseflow.rag.graph import GroundedAnswer, SearchPlan, build_knowledge_graph
-from caseflow.rag.semantic_cache import CacheVerdict, SemanticCache, is_cacheable, kb_version_from_hashes
+from samadhan.config import Settings
+from samadhan.llm import ModelRegistry
+from samadhan.rag.embeddings import FastEmbedEmbeddings
+from samadhan.rag.graph import GroundedAnswer, SearchPlan, build_knowledge_graph
+from samadhan.rag.semantic_cache import CacheVerdict, SemanticCache, is_cacheable, kb_version_from_hashes
 from tests.fakes import ScriptedChatModel
 from tests.unit.test_corrective_rag import StubRetriever
 

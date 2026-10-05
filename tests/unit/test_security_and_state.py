@@ -8,22 +8,50 @@ import pytest
 from langgraph.types import Interrupt
 from pydantic import ValidationError
 
-from caseflow.agents.state import collect_results
-from caseflow.config import MCPSettings, Settings
-from caseflow.mcp_servers.auth import ApprovalError, mint_approval_code, mint_service_token, verify_approval_code
-from caseflow.rag.documents import chunk_document, parse_markdown
-from caseflow.service import _confirmation_resume, classify_interrupt, new_thread_id, owner_of
+from samadhan.agents.state import collect_results
+from samadhan.config import MCPSettings, Settings
+from samadhan.mcp_servers.auth import (
+    ApprovalError,
+    generate_key_pair,
+    jwks,
+    key_id,
+    mint_approval_code,
+    mint_service_token,
+    verification_key,
+    verify_approval_code,
+)
+from samadhan.rag.documents import chunk_document, parse_markdown
+from samadhan.service import _confirmation_resume, classify_interrupt, new_thread_id, owner_of
 
 MCP = MCPSettings()
 
 
 def test_service_token_is_scoped_short_lived_and_audience_bound() -> None:
     token = mint_service_token(MCP, subject="cust_001", scopes=("orders:read",))
-    claims = jwt.decode(token, MCP.jwt_secret.get_secret_value(), algorithms=["HS256"], audience="caseflow-mcp")
+    public = verification_key(MCP)
+    claims = jwt.decode(token, public, algorithms=["EdDSA"], audience="samadhan-mcp")
     assert claims["sub"] == "cust_001" and claims["scope"] == "orders:read"
     assert claims["exp"] - time.time() <= MCP.token_ttl_s + 1
+    assert jwt.get_unverified_header(token)["kid"] == key_id(public)  # rotation-ready
     with pytest.raises(jwt.InvalidAudienceError):
-        jwt.decode(token, MCP.jwt_secret.get_secret_value(), algorithms=["HS256"], audience="caseflow-approvals")
+        jwt.decode(token, public, algorithms=["EdDSA"], audience="samadhan-approvals")
+    forged = jwt.encode(
+        {"sub": "cust_001", "aud": "samadhan-mcp"}, "a-guessed-secret-of-32-bytes-len", algorithm="HS256"
+    )
+    with pytest.raises(jwt.InvalidAlgorithmError):  # no algorithm confusion: an HS256 token is refused
+        jwt.decode(forged, public, algorithms=["EdDSA"], audience="samadhan-mcp")
+
+
+def test_mcp_servers_need_only_the_public_key() -> None:
+    private, public = generate_key_pair()
+    api = MCPSettings(jwt_private_key=private)  # the API: signs
+    server = MCPSettings(jwt_public_key=public)  # an MCP server: verifies, cannot sign
+    code = mint_approval_code(api, customer_id="c1", order_id="VW-1", max_amount=10, approver="sup")
+    assert verify_approval_code(server, code, customer_id="c1", order_id="VW-1", amount=10)["approver"] == "sup"
+    with pytest.raises(RuntimeError, match="PRIVATE_KEY is required"):
+        mint_service_token(server, subject="c1")
+    jwk = jwks(server)["keys"][0]
+    assert jwk["kty"] == "OKP" and jwk["crv"] == "Ed25519" and "d" not in jwk  # public part only
 
 
 def test_approval_code_is_bound_to_customer_order_and_amount() -> None:

@@ -2,15 +2,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
-  labels: { app: caseflow-api }
+  labels: { app: samadhan-api }
 spec:
   replicas: 2
-  selector: { matchLabels: { app: caseflow-api } }
+  selector: { matchLabels: { app: samadhan-api } }
   strategy:
     rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
   template:
     metadata:
-      labels: { app: caseflow-api, role: api }
+      labels: { app: samadhan-api, role: api }
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
@@ -24,12 +24,13 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: api
-          image: caseflow
-          args: ["caseflow", "serve", "api"]
+          image: samadhan
+          args: ["samadhan", "serve", "api"]
           ports: [{ containerPort: 8000, name: http }]
           envFrom:
-            - configMapRef: { name: caseflow-config }
-            - secretRef: { name: caseflow-secrets }
+            - configMapRef: { name: samadhan-config }
+            - secretRef: { name: samadhan-secrets }
+            - secretRef: { name: samadhan-api-signing }  # service-token private key: API only
           resources:
             requests: { cpu: 500m, memory: 768Mi }   # ONNX embedding + reranker models live in RAM
             limits: { memory: 1536Mi }
@@ -60,7 +61,7 @@ kind: Service
 metadata:
   name: api
 spec:
-  selector: { app: caseflow-api }
+  selector: { app: samadhan-api }
   ports: [{ port: 80, targetPort: http, name: http }]
 ---
 apiVersion: autoscaling/v2
@@ -81,4 +82,4 @@ metadata:
   name: api
 spec:
   minAvailable: 1
-  selector: { matchLabels: { app: caseflow-api } }
+  selector: { matchLabels: { app: samadhan-api } }

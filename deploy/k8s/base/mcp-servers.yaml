@@ -6,20 +6,20 @@ metadata:
   name: commerce
 spec:
   replicas: 2
-  selector: { matchLabels: { app: caseflow-commerce } }
+  selector: { matchLabels: { app: samadhan-commerce } }
   template:
     metadata:
-      labels: { app: caseflow-commerce, role: mcp }
+      labels: { app: samadhan-commerce, role: mcp }
     spec:
       securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: commerce
-          image: caseflow
-          args: ["caseflow", "serve", "commerce"]
+          image: samadhan
+          args: ["samadhan", "serve", "commerce"]
           ports: [{ containerPort: 8101, name: http }]
           envFrom:
-            - configMapRef: { name: caseflow-config }
-            - secretRef: { name: caseflow-secrets }
+            - configMapRef: { name: samadhan-config }
+            - secretRef: { name: samadhan-secrets }
           resources:
             requests: { cpu: 100m, memory: 192Mi }
             limits: { memory: 384Mi }
@@ -35,7 +35,7 @@ kind: Service
 metadata:
   name: commerce
 spec:
-  selector: { app: caseflow-commerce }
+  selector: { app: samadhan-commerce }
   ports: [{ port: 8101, targetPort: http }]
 ---
 apiVersion: apps/v1
@@ -44,20 +44,20 @@ metadata:
   name: helpdesk
 spec:
   replicas: 1
-  selector: { matchLabels: { app: caseflow-helpdesk } }
+  selector: { matchLabels: { app: samadhan-helpdesk } }
   template:
     metadata:
-      labels: { app: caseflow-helpdesk, role: mcp }
+      labels: { app: samadhan-helpdesk, role: mcp }
     spec:
       securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: helpdesk
-          image: caseflow
-          args: ["caseflow", "serve", "helpdesk"]
+          image: samadhan
+          args: ["samadhan", "serve", "helpdesk"]
           ports: [{ containerPort: 8102, name: http }]
           envFrom:
-            - configMapRef: { name: caseflow-config }
-            - secretRef: { name: caseflow-secrets }
+            - configMapRef: { name: samadhan-config }
+            - secretRef: { name: samadhan-secrets }
           resources:
             requests: { cpu: 50m, memory: 160Mi }
             limits: { memory: 320Mi }
@@ -72,5 +72,5 @@ kind: Service
 metadata:
   name: helpdesk
 spec:
-  selector: { app: caseflow-helpdesk }
+  selector: { app: samadhan-helpdesk }
   ports: [{ port: 8102, targetPort: http }]

@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from caseflow.domain.catalog import PRODUCTS
-from caseflow.domain.policies import business_days_between, can_cancel, evaluate_return, is_shipment_stalled
+from samadhan.domain.catalog import PRODUCTS
+from samadhan.domain.policies import business_days_between, can_cancel, evaluate_return, is_shipment_stalled
 
 NOW = datetime(2026, 9, 30, 12, 0)
 

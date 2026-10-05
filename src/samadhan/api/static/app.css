@@ -1,0 +1,55 @@
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1c2230; --muted: #6b7385; --line: #e3e6ec;
+    --brand: #3b5bdb; --brand-soft: #e8edff; --ok: #1f8a4c; --warn: #b7791f; --bad: #c0392b;
+    --bubble-me: #3b5bdb; --bubble-me-ink: #fff; --bubble-bot: #f1f3f7; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #11141a; --panel: #181c24; --ink: #e6e9ef; --muted: #98a0b3; --line: #2a303c;
+      --brand: #7c93ff; --brand-soft: #232b45; --bubble-bot: #222835; --bubble-me: #4c6ef5; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 16px; margin: 0; }
+  header .tag { font-size: 12px; color: var(--muted); }
+  main { display: grid; grid-template-columns: 260px minmax(0, 1fr) 380px; gap: 12px; padding: 12px; height: calc(100vh - 50px); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; min-height: 0; }
+  section h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .pad { padding: 12px; }
+  .scroll { overflow-y: auto; flex: 1; min-height: 0; }
+  select, input, textarea, button { font: inherit; color: inherit; }
+  select, input, textarea { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); }
+  button { cursor: pointer; border: 1px solid var(--line); background: var(--panel); border-radius: 7px; padding: 7px 10px; }
+  button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+  button.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  button.bad { background: var(--bad); color: #fff; border-color: var(--bad); }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .stack > * + * { margin-top: 8px; }
+  .scenario { display: block; width: 100%; text-align: left; margin-top: 6px; font-size: 13px; }
+  .scenario small { display: block; color: var(--muted); }
+  #chat { padding: 14px; }
+  .msg { max-width: 78%; margin: 8px 0; padding: 9px 12px; border-radius: 12px; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.me { margin-left: auto; background: var(--bubble-me); color: var(--bubble-me-ink); border-bottom-right-radius: 4px; }
+  .msg.bot { background: var(--bubble-bot); border-bottom-left-radius: 4px; }
+  .msg.system { max-width: 100%; background: transparent; color: var(--muted); font-size: 12px; text-align: center; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; background: var(--brand-soft); }
+  .card .title { font-weight: 600; margin-bottom: 6px; }
+  #composer { border-top: 1px solid var(--line); padding: 10px; }
+  #composer textarea { resize: none; height: 44px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); border: 1px solid transparent; }
+  .trace { font-family: var(--mono); font-size: 12px; padding: 8px 12px; }
+  .trace div { padding: 3px 0; border-bottom: 1px dashed var(--line); }
+  .trace .t-tool { color: var(--warn); } .trace .t-ok { color: var(--ok); } .trace .t-err { color: var(--bad); } .trace .t-node { color: var(--brand); }
+  .muted { color: var(--muted); font-size: 12px; }
+  .feedback { margin: -4px 0 8px 4px; }
+  .feedback button { border: none; background: transparent; cursor: pointer; font-size: 14px; padding: 2px 4px; }
+  .split { display: grid; grid-template-rows: 1fr 1fr; gap: 12px; min-height: 0; }
+  @media (max-width: 1100px) { main { grid-template-columns: 1fr; height: auto; } .split { grid-template-rows: auto auto; } section { min-height: 300px; } }
+  /* utility classes: inline style="" attributes would need CSP 'unsafe-inline' */
+  .mt6 { margin-top: 6px; }
+  .mt8 { margin-top: 8px; }
+  .prewrap { white-space: pre-wrap; }
+  .reply-box { margin-top: 6px; height: 60px; }
+  .inline-row { display: inline-flex; margin-left: 8px; }

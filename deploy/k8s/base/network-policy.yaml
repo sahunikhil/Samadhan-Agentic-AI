@@ -21,4 +21,4 @@ spec:
   ingress:
     - from:
         - podSelector: { matchLabels: { role: api } }
-        - podSelector: { matchLabels: { job-name: caseflow-ingest } }
+        - podSelector: { matchLabels: { job-name: samadhan-ingest } }

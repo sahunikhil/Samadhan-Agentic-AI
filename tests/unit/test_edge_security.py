@@ -11,9 +11,10 @@ from fastapi.testclient import TestClient
 from fastmcp.client import Client
 from fastmcp.exceptions import ToolError
 
-from caseflow.api.security import EdgeGuardMiddleware, SlidingWindowRateLimiter
-from caseflow.config import Settings
-from caseflow.mcp_servers.knowledge.server import create_knowledge_server
+from samadhan.api.security import EdgeGuardMiddleware, SlidingWindowRateLimiter
+from samadhan.config import Settings
+from samadhan.mcp_servers.auth import generate_key_pair
+from samadhan.mcp_servers.knowledge.server import create_knowledge_server
 
 
 @pytest.fixture
@@ -57,13 +58,18 @@ def test_public_cpu_heavy_routes_are_rate_limited_per_ip(client: TestClient) -> 
 def test_production_refuses_weak_secrets() -> None:
     weak = {
         "environment": "prod",
-        "mcp": {"jwt_secret": "x" * 40},
+        "mcp": {},
         "api": {"admin_api_key": "short-key", "token_secret": "too-short", "demo_mode": False},
     }
     with pytest.raises(ValueError, match="TOKEN_SECRET must be at least 32") as exc:
         Settings(**weak)  # type: ignore[arg-type]
     assert "ADMIN_API_KEY must be at least 24" in str(exc.value)
-    strong = {**weak, "api": {"admin_api_key": "a" * 24, "token_secret": "t" * 32, "demo_mode": False}}
+    assert "Service-token keys must be configured" in str(exc.value)  # no auto-generated keys in prod
+    strong = {
+        "environment": "prod",
+        "mcp": {"jwt_public_key": generate_key_pair()[1]},
+        "api": {"admin_api_key": "a" * 24, "token_secret": "t" * 32, "demo_mode": False},
+    }
     assert Settings(**strong).environment == "prod"  # type: ignore[arg-type]
 
 

@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      CASEFLOW_LLM__PROFILE: ${{ vars.CASEFLOW_LLM_PROFILE || 'groq' }}
+      SAMADHAN_LLM__PROFILE: ${{ vars.SAMADHAN_LLM_PROFILE || 'groq' }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      CASEFLOW_RETRIEVAL__MODEL_CACHE_DIR: ${{ github.workspace }}/.models
+      SAMADHAN_RETRIEVAL__MODEL_CACHE_DIR: ${{ github.workspace }}/.models
       PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v5
@@ -29,9 +29,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .models
-          key: fastembed-${{ hashFiles('src/caseflow/config.py') }}
+          key: fastembed-${{ hashFiles('src/samadhan/config.py') }}
       - run: uv sync --locked --extra eval
-      - run: uv run caseflow eval all --only "${{ inputs.suites || 'retrieval,chunking,cache,rag,agent,redteam' }}"
+      - run: uv run samadhan eval all --only "${{ inputs.suites || 'retrieval,chunking,cache,rag,agent,redteam' }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: eval-report, path: evals/reports/ }

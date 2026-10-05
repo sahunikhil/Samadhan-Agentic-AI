@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from caseflow.evaluation.retrieval_metrics import ndcg_at_k, reciprocal_rank, score_ranking
+from samadhan.evaluation.retrieval_metrics import ndcg_at_k, reciprocal_rank, score_ranking
 
 
 def test_perfect_ranking() -> None:

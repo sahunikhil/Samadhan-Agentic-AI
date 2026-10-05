@@ -15,7 +15,7 @@ build/
 *.egg-info/
 # Keep: uv.lock (reproducible installs) and .python-version (pinned interpreter).
 
-# --- Local runtime state (recreated by `caseflow seed` / `caseflow ingest`) ---
+# --- Local runtime state (recreated by `samadhan seed` / `samadhan ingest`) ---
 .data/
 .models/
 *.db

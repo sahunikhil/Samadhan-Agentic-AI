@@ -8,19 +8,19 @@ from typing import Any
 
 import pytest
 
-from caseflow.rag.ingest import ingest_knowledge_base
-from caseflow.rag.retriever import HybridRetriever, RetrievalConfig
+from samadhan.rag.ingest import ingest_knowledge_base
+from samadhan.rag.retriever import HybridRetriever, RetrievalConfig
 
-DSN = os.environ.get("CASEFLOW_TEST_DATABASE_URL")
+DSN = os.environ.get("SAMADHAN_TEST_DATABASE_URL")
 pytestmark = [
     pytest.mark.postgres,
-    pytest.mark.skipif(not DSN, reason="set CASEFLOW_TEST_DATABASE_URL to a pgvector-enabled Postgres"),
+    pytest.mark.skipif(not DSN, reason="set SAMADHAN_TEST_DATABASE_URL to a pgvector-enabled Postgres"),
 ]
 
 
 @pytest.fixture
 async def pg_retriever(settings: Any, embeddings: Any) -> Any:
-    from caseflow.rag.stores.pgvector import PgVectorStore
+    from samadhan.rag.stores.pgvector import PgVectorStore
 
     store = PgVectorStore(DSN or "", table=f"kb_test_{uuid.uuid4().hex[:8]}")
     report = await ingest_knowledge_base(settings, store, embeddings, force=True)

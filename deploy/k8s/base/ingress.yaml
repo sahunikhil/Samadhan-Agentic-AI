@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: caseflow
+  name: samadhan
   annotations:
     # SSE: disable response buffering and allow long-lived streams (ingress-nginx syntax;
     # translate for Traefik/HAProxy/cloud load balancers).
@@ -12,7 +12,7 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts: [support.example.com]
-      secretName: caseflow-tls
+      secretName: samadhan-tls
   rules:
     - host: support.example.com
       http:

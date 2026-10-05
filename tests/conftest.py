@@ -23,16 +23,16 @@ import pytest
 import uvicorn
 
 warnings.filterwarnings("ignore", message=".*langchain.mcp.*beta.*")
-os.environ.setdefault("CASEFLOW_ENVIRONMENT", "test")
+os.environ.setdefault("SAMADHAN_ENVIRONMENT", "test")
 # Tests never ship traces to a SaaS (flaky network, leaks fixture data, burns quota).
 os.environ["LANGSMITH_TRACING"] = "false"
 os.environ["LANGCHAIN_TRACING_V2"] = "false"
 
-from caseflow.config import Settings  # noqa: E402
-from caseflow.mcp_servers.commerce.seed import seed_commerce  # noqa: E402
-from caseflow.mcp_servers.commerce.server import create_commerce_server  # noqa: E402
-from caseflow.mcp_servers.db import Database  # noqa: E402
-from caseflow.mcp_servers.helpdesk.server import create_helpdesk_server  # noqa: E402
+from samadhan.config import Settings  # noqa: E402
+from samadhan.mcp_servers.commerce.seed import seed_commerce  # noqa: E402
+from samadhan.mcp_servers.commerce.server import create_commerce_server  # noqa: E402
+from samadhan.mcp_servers.db import Database  # noqa: E402
+from samadhan.mcp_servers.helpdesk.server import create_helpdesk_server  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -66,7 +66,7 @@ class _ServerThread:
 
 @pytest.fixture(scope="session")
 def data_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return tmp_path_factory.mktemp("caseflow")
+    return tmp_path_factory.mktemp("samadhan")
 
 
 @pytest.fixture(scope="session")
@@ -115,7 +115,7 @@ async def _fresh_commerce_data(request: pytest.FixtureRequest) -> None:
 
 @pytest.fixture(scope="session")
 async def embeddings(settings: Settings) -> Any:
-    from caseflow.rag.embeddings import EmbeddingModels
+    from samadhan.rag.embeddings import EmbeddingModels
 
     models = EmbeddingModels(settings.retrieval)
     await asyncio.to_thread(models.warmup)
@@ -124,9 +124,9 @@ async def embeddings(settings: Settings) -> Any:
 
 @pytest.fixture(scope="session")
 async def retriever(settings: Settings, embeddings: Any) -> AsyncIterator[Any]:
-    from caseflow.rag.ingest import ingest_knowledge_base
-    from caseflow.rag.retriever import HybridRetriever
-    from caseflow.rag.stores.qdrant import QdrantHybridStore
+    from samadhan.rag.ingest import ingest_knowledge_base
+    from samadhan.rag.retriever import HybridRetriever
+    from samadhan.rag.stores.qdrant import QdrantHybridStore
 
     store = QdrantHybridStore(collection="kb_test", path=Path(":memory:"))
     await ingest_knowledge_base(settings, store, embeddings, force=True)

@@ -17,13 +17,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from caseflow.config import get_settings
-from caseflow.llm import ModelRegistry
-from caseflow.rag.embeddings import EmbeddingModels
-from caseflow.rag.graph import build_knowledge_graph
-from caseflow.rag.ingest import ingest_knowledge_base
-from caseflow.rag.retriever import HybridRetriever
-from caseflow.rag.stores.qdrant import QdrantHybridStore
+from samadhan.config import get_settings
+from samadhan.llm import ModelRegistry
+from samadhan.rag.embeddings import EmbeddingModels
+from samadhan.rag.graph import build_knowledge_graph
+from samadhan.rag.ingest import ingest_knowledge_base
+from samadhan.rag.retriever import HybridRetriever
+from samadhan.rag.stores.qdrant import QdrantHybridStore
 
 
 class EventPrinter:
