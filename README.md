@@ -31,6 +31,7 @@ cancels orders, answers product and policy questions with citations, and hands o
 - [Evaluation results](#evaluation-results)
 - [Repository map](#repository-map)
 - [Deployment](#deployment)
+- [Responsible use & data protection](#responsible-use--data-protection)
 
 ---
 
@@ -206,6 +207,32 @@ uv run samadhan keys generate
 
 `SAMADHAN_ENVIRONMENT=prod` makes the services refuse to start with development secrets, demo login
 enabled or missing keys. Configuration reference: [`.env.example`](.env.example).
+
+## Responsible use & data protection
+
+Samadhan is a reference implementation. Before it talks to real customers:
+
+- **AI disclosure.** The chat tells customers up front that they are talking to an AI assistant
+  (EU AI Act Art. 50). Any other front end built on the API must do the same. Replies written by a
+  person in the handoff console are signed with that person's name.
+- **Human oversight.** Refunds above the limit ($100 by default) need a supervisor, cancellations
+  and returns need the customer's explicit confirmation, and a customer can ask for a person at any
+  time.
+- **Third-party processing.** Prompts contain customer messages and order details and go to the
+  configured LLM provider. Free tiers are for development (Gemini's free tier, for example, lets
+  Google use prompts to improve its products): for personal data use a paid tier under a data
+  processing agreement, or self-hosted models (`SAMADHAN_LLM__PROFILE=ollama`). LangSmith/Langfuse
+  tracing, off by default, sends prompts to that service as well; OpenTelemetry spans never record
+  message content.
+- **Data minimization.** Card numbers are masked before anything is stored, long-term memories
+  expire after a year (Postgres store), and logs record IDs and event metadata, not conversations.
+- **Right to erasure.** `DELETE /v1/admin/customers/{customer_id}` (admin role) removes a customer's
+  conversations, memories, feedback and stored API responses and writes an audit entry. Orders and
+  tickets stay in the commerce and helpdesk systems of record, which apply their own retention rules.
+- **Licenses.** Dependency and model licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+These are engineering controls, not legal advice: a production deployment still needs its own
+privacy notice, a lawful basis for each processing purpose and records of processing.
 
 ## License
 

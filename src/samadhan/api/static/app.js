@@ -56,7 +56,10 @@ async function login() {
   const data = await r.json(); token = data.access_token; customerId = id;
   $("who").textContent = `Signed in as ${data.customer.name} (${data.customer.tier})`; newThread(); renderScenarios();
 }
-function newThread() { threadId = null; $("chat").innerHTML = ""; $("trace").innerHTML = ""; $("console").innerHTML = ""; $("triageChips").innerHTML = ""; $("threadInfo").textContent = ""; }
+function newThread() { threadId = null; $("chat").innerHTML = ""; $("trace").innerHTML = ""; $("console").innerHTML = ""; $("triageChips").innerHTML = ""; $("threadInfo").textContent = "";
+  // AI disclosure (EU AI Act Art. 50): the customer is told up front that the assistant is an AI.
+  if (token) addMsg("bot", "Hi, I'm Samadhan, an AI support assistant. I can check orders, returns and refunds - and hand you over to a person whenever you ask.");
+}
 
 // POST + Server-Sent Events via fetch streams (EventSource only supports GET).
 async function streamSSE(url, body, headers, onEvent) {

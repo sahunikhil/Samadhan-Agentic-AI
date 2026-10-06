@@ -14,6 +14,7 @@ Endpoints (OpenAPI docs at ``/docs``):
 ``POST /v1/threads/{id}/feedback``    cust/staff thumbs up/down on the latest reply
 ``GET  /v1/admin/feedback``           staff      ratings for review / dataset harvesting
 ``POST /v1/admin/ingest``             staff      re-index the knowledge base
+``DELETE /v1/admin/customers/{id}``   admin      erase a customer's data (GDPR Art. 17)
 ``/mcp/knowledge``                    public     knowledge MCP server (Streamable HTTP)
 ``GET  /.well-known/agent-card.json`` public     A2A agent card (discovery)
 ``POST /a2a``                         customer   A2A JSON-RPC endpoint (agent-to-agent)
@@ -66,6 +67,7 @@ from samadhan.mcp_servers.auth import jwks
 from samadhan.mcp_servers.commerce.seed import CUSTOMERS
 from samadhan.mcp_servers.knowledge.server import create_knowledge_server
 from samadhan.observability import HTTP_LATENCY, HTTP_REQUESTS, audit, get_logger
+from samadhan.privacy import erase_customer
 from samadhan.rag.ingest import ingest_knowledge_base
 from samadhan.rag.retriever import HybridRetriever
 from samadhan.resilience import BREAKERS
@@ -387,6 +389,16 @@ def create_app(
         audit("kb_reindex", principal.id, force=force)
         report = await ingest_knowledge_base(settings, c.vector_store, c.embeddings, force=force)
         return report.__dict__
+
+    @app.delete("/v1/admin/customers/{customer_id}", tags=["admin"])
+    async def erase_customer_data(
+        customer_id: str, request: Request, principal: Annotated[Principal, Depends(require_admin)]
+    ) -> dict[str, Any]:
+        """Right to erasure: conversations, memories, feedback and stored API responses of one customer."""
+        c: Container = request.app.state.container
+        report = await erase_customer(c.checkpointer, c.store, customer_id, engine=idempotency.engine)
+        audit("customer_data_erased", principal.id, **report)  # the erasure itself must stay provable
+        return report
 
     # ---- MCP + A2A + UI -------------------------------------------------------------------------
     app.mount("/mcp/knowledge", knowledge_mcp_app)

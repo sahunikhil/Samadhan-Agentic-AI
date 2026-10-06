@@ -226,6 +226,7 @@ def test_ui_escapes_model_output_and_sends_security_headers(client: TestClient) 
     unescaped = [m for m in re.findall(r"innerHTML = `[^`]*`", script.text) if re.search(r"\$\{(?!esc\()", m)]
     assert not unescaped, unescaped
     assert "<script>" not in page.text and "<style>" not in page.text and "style=" not in page.text + script.text
+    assert "chatting with an AI assistant" in page.text  # AI disclosure (EU AI Act Art. 50)
     csp = page.headers["content-security-policy"]
     assert "frame-ancestors 'none'" in csp and "connect-src 'self'" in csp
     assert "unsafe-inline" not in csp  # inline script/style injected into the page would not run
@@ -282,3 +283,31 @@ def test_customer_tokens_from_the_identity_provider(client: TestClient) -> None:
     # A *staff*-realm token is not a customer identity: the issuer is checked.
     staff_realm = idp_customer("cust_001", IDP_ISSUER)
     assert client.post("/v1/chat", json={"message": "hi"}, headers=staff_realm).status_code == 403
+
+
+def test_admin_erases_one_customers_data(client: TestClient) -> None:
+    """Right to erasure: threads, memories, feedback and stored responses go; other customers stay."""
+    from structlog.testing import capture_logs
+
+    store = client.app.state.container.store  # type: ignore[attr-defined]
+    erased, bystander = _login(client, "cust_005"), _login(client, "cust_004")
+    retry = {**erased, "Idempotency-Key": "erase-test-0001"}
+    thread_id = client.post("/v1/chat", json={"message": "hello"}, headers=retry).json()["thread_id"]
+    kept = client.post("/v1/chat", json={"message": "hello"}, headers=bystander).json()["thread_id"]
+    assert client.post(f"/v1/threads/{thread_id}/feedback", json={"rating": "up"}, headers=erased).status_code == 201
+    store.put(("customers", "cust_005", "memories"), "m1", {"text": "prefers store credit"}, index=False)
+
+    assert client.delete("/v1/admin/customers/cust_005", headers=erased).status_code == 403
+    assert client.delete("/v1/admin/customers/cust_005", headers=_sso("ana.agent", ["agent"])).status_code == 403
+    with capture_logs() as logs:
+        report = client.delete("/v1/admin/customers/cust_005", headers=STAFF).json()
+    assert report["threads"] == 1 and report["memories"] == 1 and report["feedback"] == 1
+    assert report["api_records"] == 1  # the stored idempotent response
+
+    assert client.get(f"/v1/threads/{thread_id}", headers=STAFF).json()["messages"] == []
+    assert not store.search(("customers", "cust_005"))
+    assert not store.search(("feedback",), filter={"customer_id": "cust_005"})
+    assert "idempotent-replayed" not in client.post("/v1/chat", json={"message": "hello"}, headers=retry).headers
+    assert client.get(f"/v1/threads/{kept}", headers=STAFF).json()["messages"]  # other customers are untouched
+    [entry] = [e for e in logs if e.get("audit") and e["action"] == "customer_data_erased"]
+    assert entry["actor"] == "sup_test" and entry["customer_id"] == "cust_005"
