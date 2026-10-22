@@ -9,8 +9,6 @@ on:
       suites:
         description: "Comma-separated suites: retrieval,chunking,cache,rag,agent,redteam"
         default: "retrieval,chunking,cache,rag,agent,redteam"
-  schedule:
-    - cron: "0 3 * * *"
 
 jobs:
   eval:
